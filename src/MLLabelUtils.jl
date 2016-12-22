@@ -4,6 +4,9 @@ using LearnBase
 
 export
 
+    labels,
+    nlabels,
+
     isposlabel,
     isneglabel,
 
