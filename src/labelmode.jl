@@ -96,8 +96,8 @@ neglabel(ovr::LabelModes.OneVsRest{Bool}) = !ovr.poslabel
 neglabel(ovr::LabelModes.OneVsRest{String}) = "not_$(ovr.poslabel)"
 neglabel(ovr::LabelModes.OneVsRest{Symbol}) = Symbol(:not_, ovr.poslabel)
 neglabel{T<:Number}(ovr::LabelModes.OneVsRest{T}) = ovr.poslabel == 0 ? ovr.poslabel+one(T) : zero(T)
-poslabel{T}(::LabelModes.Indices{T,2}) = T(2)
-neglabel{T}(::LabelModes.Indices{T,2}) = T(1)
+poslabel{T}(::LabelModes.Indices{T,2}) = T(1)
+neglabel{T}(::LabelModes.Indices{T,2}) = T(2)
 poslabel{T}(lm::LabelModes.OneOfK{T,2}) = lm.labels[1]
 neglabel{T}(lm::LabelModes.OneOfK{T,2}) = lm.labels[2]
 poslabel{T}(lm::LabelModes.NativeLabels{T,2}) = lm.labels[1]
@@ -110,23 +110,31 @@ labels(lm::LabelModes.OneOfK) = lm.labels
 
 # What it means to be a positive label
 isposlabel(value, ::LabelModes.FuzzyBinary) = _ambiguous()
+isposlabel(value, ovr::LabelModes.OneVsRest) = (value == ovr.poslabel)
 isposlabel(value::Bool, ::LabelModes.FuzzyBinary) = value
 isposlabel(value::Bool, ::LabelModes.TrueFalse)   = value
-isposlabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value >= zero(T))
+isposlabel(value::Bool, ::LabelModes.MarginBased) = throw(MethodError(isposlabel,(value,)))
+isposlabel(value::Bool, ::LabelModes.Indices) = throw(MethodError(isposlabel,(value,)))
+isposlabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value > zero(T))
 isposlabel{T<:Number}(value::T, zo::LabelModes.ZeroOne)    = (value >= zo.cutoff)
 isposlabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) == one(T))
-isposlabel{T<:Number}(value::T, ovr::LabelModes.OneVsRest) = (value == ovr.poslabel)
-isposlabel{T}(value::T, lm::MLLabelUtils.BinaryLabelMode)  = value == poslabel(lm)
+isposlabel{T}(value::Number, lm::LabelModes.Indices{T,2})  = value == poslabel(lm)
+isposlabel{T}(value, lm::LabelModes.OneOfK{T,2})       = value == poslabel(lm)
+isposlabel{T}(value, lm::LabelModes.NativeLabels{T,2}) = value == poslabel(lm)
 
 # What it means to be a negative label
 isneglabel(value, ::LabelModes.FuzzyBinary) = _ambiguous()
+isneglabel(value, ovr::LabelModes.OneVsRest) = (value != ovr.poslabel)
 isneglabel(value::Bool, ::LabelModes.FuzzyBinary) = !value
 isneglabel(value::Bool, ::LabelModes.TrueFalse)   = !value
-isneglabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value < zero(T))
+isneglabel(value::Bool, ::LabelModes.MarginBased) = throw(MethodError(isneglabel,(value,)))
+isneglabel(value::Bool, ::LabelModes.Indices)     = throw(MethodError(isneglabel,(value,)))
+isneglabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value <= zero(T))
 isneglabel{T<:Number}(value::T, zo::LabelModes.ZeroOne)    = (value < zo.cutoff)
 isneglabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) == -one(T))
-isneglabel{T<:Number}(value::T, ovr::LabelModes.OneVsRest) = (value != ovr.poslabel)
-isneglabel{T}(value::T, lm::MLLabelUtils.BinaryLabelMode)  = value == neglabel(lm)
+isneglabel{T}(value::Number, lm::LabelModes.Indices{T,2})  = value == neglabel(lm)
+isneglabel{T}(value, lm::LabelModes.OneOfK{T,2})       = value == neglabel(lm)
+isneglabel{T}(value, lm::LabelModes.NativeLabels{T,2}) = value == neglabel(lm)
 
 # Automatic determination of label mode
 labelmode(target) = _ambiguous()
@@ -134,11 +142,7 @@ labelmode(targets::AbstractVector{Bool}) = LabelModes.TrueFalse()
 
 function labelmode(targets::AbstractVector)
     lbls = labels(targets)
-    if 1 <= length(labels) <= 2
-        LabelModes.OneVsRest(labels[1])
-    else
-        LabelModes.NativeLabels(labels)
-    end
+    LabelModes.NativeLabels(lbls)
 end
 
 function labelmode{T<:Number}(targets::AbstractVector{T})
@@ -152,17 +156,20 @@ function labelmode{T<:Number}(targets::AbstractVector{T})
             _ambiguous() # could be ZeroOne or MarginBased
         end
     elseif length(lbls) == 2
-        if minimum(lbls) == 0 && maximum(lbls) == 1
+        mi, ma = extrema(lbls)
+        if mi == 0 && ma == 1
             LabelModes.ZeroOne(T)
-        elseif minimum(lbls) == -1 && maximum(lbls) == 1
+        elseif mi == -1 && ma == 1
             LabelModes.MarginBased(T)
+        elseif mi == 1 && ma == 2
+            LabelModes.Indices(T, Val{2})
         else
-            LabelModes.OneVsRest(maximum(lbls))
+            LabelModes.NativeLabels([ma, mi])
         end
     elseif all(x > 0 && isinteger(x) for x in lbls)
-        LabelModes.Indices(T,maximum(lbls))
+        LabelModes.Indices(T, maximum(lbls))
     elseif length(lbls) > 10 && any(!isinteger(x) for x in lbls)
-        warn("The number of distinct non-integer elements in the label vextor is quite large. Are you sure you want to do classification and not regression?")
+        warn("The number of distinct floating point numbers (including at least one that is non-integer!) in the label vector is quite large. Are you sure you want to perform classification and not regression?")
         LabelModes.NativeLabels(lbls)
     else
         LabelModes.NativeLabels(lbls)
@@ -170,3 +177,4 @@ function labelmode{T<:Number}(targets::AbstractVector{T})
 end
 
 # TODO: Multilabel (Matrix as targets)
+
