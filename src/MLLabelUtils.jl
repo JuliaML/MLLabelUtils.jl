@@ -7,6 +7,10 @@ export
     labels,
     nlabels,
 
+    poslabel,
+    neglabel,
+    poslabel,
+    neglabel,
     isposlabel,
     isneglabel,
 

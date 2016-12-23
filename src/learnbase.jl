@@ -7,6 +7,8 @@ nlabels{K}(::LabelMode{K}) = Int(K)
 labels(itr) = unique(itr)
 labels{T,N}(A::AbstractArray{T,N}) = unique(A, N) # TODO: Use ObsDim
 
+function poslabel end
+function neglabel end
 function labelmode end
 function isposlabel end
 function isneglabel end

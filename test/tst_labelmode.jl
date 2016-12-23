@@ -37,17 +37,20 @@
         @test @inferred(nlabels(labelmode(targets))) === 2
         @test eltype(@inferred(labels(labelmode(targets)))) <: Float32
 
-        @test typeof(@inferred(LabelModes.ZeroOne())) <: LabelModes.ZeroOne{Int,Float64}
-        @test typeof(@inferred(LabelModes.ZeroOne(0.0))) <: LabelModes.ZeroOne{Int,Float64}
-        @test typeof(@inferred(LabelModes.ZeroOne(0.2))) <: LabelModes.ZeroOne{Int,Float64}
-        @test typeof(@inferred(LabelModes.ZeroOne(1.0))) <: LabelModes.ZeroOne{Int,Float64}
-        @test typeof(@inferred(LabelModes.ZeroOne(0.2f0))) <: LabelModes.ZeroOne{Int,Float32}
+        @test typeof(@inferred(LabelModes.ZeroOne())) <: LabelModes.ZeroOne{Float64,Float64}
+        @test typeof(@inferred(LabelModes.ZeroOne(0))) <: LabelModes.ZeroOne{Int,Int}
+        @test typeof(@inferred(LabelModes.ZeroOne(0.0))) <: LabelModes.ZeroOne{Float64,Float64}
+        @test typeof(@inferred(LabelModes.ZeroOne(0.2))) <: LabelModes.ZeroOne{Float64,Float64}
+        @test typeof(@inferred(LabelModes.ZeroOne(1.0))) <: LabelModes.ZeroOne{Float64,Float64}
+        @test typeof(@inferred(LabelModes.ZeroOne(0.2f0))) <: LabelModes.ZeroOne{Float32,Float32}
         @test_throws AssertionError LabelModes.ZeroOne(1.1)
         @test_throws AssertionError LabelModes.ZeroOne(-0.1)
         @test_throws MethodError LabelModes.ZeroOne(String)
         @test typeof(@inferred(LabelModes.ZeroOne(Float64))) <: LabelModes.ZeroOne{Float64,Float64}
         @test typeof(@inferred(LabelModes.ZeroOne(UInt8))) <: LabelModes.ZeroOne{UInt8,Float64}
-        @test typeof(@inferred(LabelModes.ZeroOne(0.1f0,UInt8))) <: LabelModes.ZeroOne{UInt8,Float32}
+        @test typeof(@inferred(LabelModes.ZeroOne(UInt8,0.1f0))) <: LabelModes.ZeroOne{UInt8,Float32}
+        @test LabelModes.ZeroOne().cutoff === 0.5
+        @test LabelModes.ZeroOne(UInt8).cutoff === 0.5
         @test LabelModes.ZeroOne(0.1).cutoff === 0.1
         @test LabelModes.ZeroOne(0.8f0).cutoff === 0.8f0
     end
@@ -75,7 +78,7 @@
         @test eltype(@inferred(labels(labelmode(targets)))) <: Float32
 
         @test_throws MethodError LabelModes.MarginBased(String)
-        @test typeof(@inferred(LabelModes.MarginBased())) <: LabelModes.MarginBased{Int}
+        @test typeof(@inferred(LabelModes.MarginBased())) <: LabelModes.MarginBased{Float64}
         @test typeof(@inferred(LabelModes.MarginBased(Int))) <: LabelModes.MarginBased{Int}
         @test typeof(@inferred(LabelModes.MarginBased(Float64))) <: LabelModes.MarginBased{Float64}
     end

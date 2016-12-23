@@ -4,15 +4,20 @@ TODO
 module LabelModes
     import ..MLLabelUtils.LabelMode
     import ..MLLabelUtils.BinaryLabelMode
-    import ..MLLabelUtils.labels
-    import ..MLLabelUtils.nlabels
 
-    immutable FuzzyBinary  <: BinaryLabelMode end
+    """
+    TODO
+    """
+    immutable FuzzyBinary <: BinaryLabelMode end
 
-    immutable TrueFalse    <: BinaryLabelMode end
-    labels(::TrueFalse) = [true, false]
+    """
+    TODO
+    """
+    immutable TrueFalse <: BinaryLabelMode end
 
-    # Binary label modes
+    """
+    TODO
+    """
     immutable ZeroOne{T<:Number,R<:Number} <: BinaryLabelMode
         cutoff::R
         function ZeroOne(cutoff::R)
@@ -20,29 +25,35 @@ module LabelModes
             new(cutoff)
         end
     end
-    ZeroOne{R<:Number,T<:Number}(cutoff::R = 0.5, t::Type{T} = Int) = ZeroOne{T,R}(cutoff)
-    ZeroOne{T<:Number}(::Type{T}) = ZeroOne(0.5, T)
-    labels{T}(::ZeroOne{T}) = [one(T), zero(T)]
+    ZeroOne{T<:Number,R<:Number}(t::Type{T} = Float64, cutoff::R = 0.5) = ZeroOne{T,R}(cutoff)
+    ZeroOne{R<:Number}(cutoff::R) = ZeroOne(R, cutoff)
 
+    """
+    TODO
+    """
     immutable MarginBased{T<:Number} <: BinaryLabelMode end
-    MarginBased{T<:Number}(::Type{T} = Int) = MarginBased{T}()
-    labels{T}(::MarginBased{T}) = [one(T), -one(T)]
+    MarginBased{T<:Number}(::Type{T} = Float64) = MarginBased{T}()
 
+    """
+    TODO
+    """
     immutable OneVsRest{T} <: BinaryLabelMode
-        pos_label::T
+        poslabel::T
     end
-    labels(ovr::OneVsRest{Bool}) = [ovr.pos_label, !ovr.pos_label]
-    labels{T<:Number}(ovr::OneVsRest{T}) = [ovr.pos_label, ovr.pos_label == 0 ? ovr.pos_label+one(T) : zero(T)]
-    labels(ovr::OneVsRest{String}) = [ovr.pos_label, "not_$(ovr.pos_label)"]
-    labels(ovr::OneVsRest{Symbol}) = [ovr.pos_label, Symbol(:not_, ovr.pos_label)]
 
-    # Multiclass label modes
-    immutable Indices{K} <: LabelMode{K}
-        Indices() = typeof(K) <: Number && isinteger(K) ? new() : error("Invalid K=$K. It has to be a number and equal to an integer")
+    """
+    TODO
+    """
+    immutable Indices{T<:Number,K} <: LabelMode{K}
+        function Indices()
+            typeof(K) <: Int || throw(TypeError(:Indices,"constructor when checking typeof(K)",Type{Int},typeof(K)))
+            new()
+        end
     end
-    Indices{K}(::Type{Val{K}}) = Indices{K}()
-    Indices(K::Number) = Indices(Val{K})
-    labels{K}(::Indices{K}) = collect(one(K):K)
+    Indices{T,K}(::Type{T}, ::Type{Val{K}}) = Indices{T,K}()
+    Indices{K}(::Type{Val{K}}) = Indices(Int,Val{K})
+    Indices{T}(::Type{T}, K::Number) = Indices(T,Val{Int(K)})
+    Indices(K::Number) = Indices(Int,Val{Int(K)})
 
     for KIND in (:NativeLabels, :OneOfK)
         @eval begin
@@ -50,27 +61,79 @@ module LabelModes
                 labels::Vector{T}
                 invlabels::Dict{T,Int}
                 function ($KIND)(labels::Vector{T})
-                    @assert typeof(K) <: Int
+                    typeof(K) <: Int || throw(TypeError(Symbol($(string(KIND))),"constructor when checking typeof(K)",Type{Int},typeof(K)))
                     @assert length(labels) == length(unique(labels)) == K
                     new(labels, Dict(zip(labels,1:K)))
                 end
             end
             ($KIND){T,K}(labels::Vector{T}, ::Type{Val{K}}) = $KIND{T,K}(labels)
             ($KIND)(labels::Vector) = $KIND(labels, Val{length(labels)})
-            labels(lm::$KIND) = lm.labels
         end
     end
+
+    @doc """
+    TODO
+    """ ->
+    NativeLabels
+
+    @doc """
+    TODO
+    """ ->
+    OneOfK
 
 end # submodule
 
 _ambiguous() = throw(ArgumentError("Can't infer the label meaning because argument types or values are ambiguous. Please specify the desired LabelMode manually."))
+
+poslabel(::LabelModes.TrueFalse) = true
+neglabel(::LabelModes.TrueFalse) = false
+poslabel{T}(::LabelModes.ZeroOne{T}) = one(T)
+neglabel{T}(::LabelModes.ZeroOne{T}) = zero(T)
+poslabel{T}(::LabelModes.MarginBased{T}) = one(T)
+neglabel{T}(::LabelModes.MarginBased{T}) = -one(T)
+poslabel(ovr::LabelModes.OneVsRest) = ovr.poslabel
+neglabel(ovr::LabelModes.OneVsRest{Bool}) = !ovr.poslabel
+neglabel(ovr::LabelModes.OneVsRest{String}) = "not_$(ovr.poslabel)"
+neglabel(ovr::LabelModes.OneVsRest{Symbol}) = Symbol(:not_, ovr.poslabel)
+neglabel{T<:Number}(ovr::LabelModes.OneVsRest{T}) = ovr.poslabel == 0 ? ovr.poslabel+one(T) : zero(T)
+poslabel{T}(::LabelModes.Indices{T,2}) = T(2)
+neglabel{T}(::LabelModes.Indices{T,2}) = T(1)
+poslabel{T}(lm::LabelModes.OneOfK{T,2}) = lm.labels[1]
+neglabel{T}(lm::LabelModes.OneOfK{T,2}) = lm.labels[2]
+poslabel{T}(lm::LabelModes.NativeLabels{T,2}) = lm.labels[1]
+neglabel{T}(lm::LabelModes.NativeLabels{T,2}) = lm.labels[2]
+
+labels(lm::LabelModes.BinaryLabelMode) = [poslabel(lm), neglabel(lm)]
+labels{T,K}(::LabelModes.Indices{T,K}) = collect(one(T):T(K))
+labels(lm::LabelModes.NativeLabels) = lm.labels
+labels(lm::LabelModes.OneOfK) = lm.labels
+
+# What it means to be a positive label
+isposlabel(value, ::LabelModes.FuzzyBinary) = _ambiguous()
+isposlabel(value::Bool, ::LabelModes.FuzzyBinary) = value
+isposlabel(value::Bool, ::LabelModes.TrueFalse)   = value
+isposlabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value >= zero(T))
+isposlabel{T<:Number}(value::T, zo::LabelModes.ZeroOne)    = (value >= zo.cutoff)
+isposlabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) == one(T))
+isposlabel{T<:Number}(value::T, ovr::LabelModes.OneVsRest) = (value == ovr.poslabel)
+isposlabel{T}(value::T, lm::MLLabelUtils.BinaryLabelMode)  = value == poslabel(lm)
+
+# What it means to be a negative label
+isneglabel(value, ::LabelModes.FuzzyBinary) = _ambiguous()
+isneglabel(value::Bool, ::LabelModes.FuzzyBinary) = !value
+isneglabel(value::Bool, ::LabelModes.TrueFalse)   = !value
+isneglabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value < zero(T))
+isneglabel{T<:Number}(value::T, zo::LabelModes.ZeroOne)    = (value < zo.cutoff)
+isneglabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) == -one(T))
+isneglabel{T<:Number}(value::T, ovr::LabelModes.OneVsRest) = (value != ovr.poslabel)
+isneglabel{T}(value::T, lm::MLLabelUtils.BinaryLabelMode)  = value == neglabel(lm)
 
 # Automatic determination of label mode
 labelmode(target) = _ambiguous()
 labelmode(targets::AbstractVector{Bool}) = LabelModes.TrueFalse()
 
 function labelmode(targets::AbstractVector)
-    lbls = unique(targets)
+    lbls = labels(targets)
     if 1 <= length(labels) <= 2
         LabelModes.OneVsRest(labels[1])
     else
@@ -89,15 +152,15 @@ function labelmode{T<:Number}(targets::AbstractVector{T})
             _ambiguous() # could be ZeroOne or MarginBased
         end
     elseif length(lbls) == 2
-        if minimum(lbls) == -1 && maximum(lbls) == 1
-            LabelModes.MarginBased(T)
-        elseif minimum(lbls) == 0 && maximum(lbls) == 1
+        if minimum(lbls) == 0 && maximum(lbls) == 1
             LabelModes.ZeroOne(T)
+        elseif minimum(lbls) == -1 && maximum(lbls) == 1
+            LabelModes.MarginBased(T)
         else
             LabelModes.OneVsRest(maximum(lbls))
         end
     elseif all(x > 0 && isinteger(x) for x in lbls)
-        LabelModes.Indices(maximum(lbls))
+        LabelModes.Indices(T,maximum(lbls))
     elseif length(lbls) > 10 && any(!isinteger(x) for x in lbls)
         warn("The number of distinct non-integer elements in the label vextor is quite large. Are you sure you want to do classification and not regression?")
         LabelModes.NativeLabels(lbls)
@@ -107,22 +170,3 @@ function labelmode{T<:Number}(targets::AbstractVector{T})
 end
 
 # TODO: Multilabel (Matrix as targets)
-
-# What it means to be a positive label
-isposlabel(value, ::LabelModes.FuzzyBinary) = _ambiguous()
-isposlabel(value::Bool, ::LabelModes.FuzzyBinary) = value
-isposlabel(value::Bool, ::LabelModes.TrueFalse)   = value
-isposlabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value > zero(T))
-isposlabel{T<:Number}(value::T, zo::LabelModes.ZeroOne)    = (value >= zo.cutoff)
-isposlabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) == one(T))
-isposlabel{T<:Number}(value::T, ovr::LabelModes.OneVsRest) = (value == ovr.pos_label)
-
-# What it means to be a negative label
-isneglabel(value, ::LabelModes.FuzzyBinary) = _ambiguous()
-isneglabel(value::Bool, ::LabelModes.FuzzyBinary) = !value
-isneglabel(value::Bool, ::LabelModes.TrueFalse)   = !value
-isneglabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value <= zero(T))
-isneglabel{T<:Number}(value::T, zo::LabelModes.ZeroOne)    = (value < zo.cutoff)
-isneglabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) == -one(T))
-isneglabel{T<:Number}(value::T, ovr::LabelModes.OneVsRest) = (value != ovr.pos_label)
-
