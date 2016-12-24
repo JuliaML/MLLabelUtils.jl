@@ -84,6 +84,20 @@
         @test typeof(LabelModes.OneOfK(UInt8,3.)) <: LabelModes.OneOfK{UInt8,3}
         @test typeof(LabelModes.OneOfK(Float64,8)) <: LabelModes.OneOfK{Float64,8}
     end
+
+    @testset "NativeLabels" begin
+        @test LabelModes.NativeLabels <: MLLabelUtils.LabelMode
+        @test_throws TypeError LabelModes.NativeLabels{Int,2.}([1,2])
+        @test_throws AssertionError LabelModes.NativeLabels{Int,3}([1,2])
+        @test_throws AssertionError LabelModes.NativeLabels([1,2],Val{3})
+        @test typeof(LabelModes.NativeLabels([5,2,3])) <: LabelModes.NativeLabels{Int,3}
+        @test typeof(LabelModes.NativeLabels([:a,:b,:c,:d])) <: LabelModes.NativeLabels{Symbol,4}
+        @test typeof(@inferred(LabelModes.NativeLabels{Int,3}([5,2,3]))) <: LabelModes.NativeLabels{Int,3}
+        @test typeof(@inferred(LabelModes.NativeLabels([5,2,3],Val{3}))) <: LabelModes.NativeLabels{Int,3}
+        @test typeof(@inferred(LabelModes.NativeLabels{Symbol,4}([:a,:b,:c,:d]))) <: LabelModes.NativeLabels{Symbol,4}
+        @test typeof(@inferred(LabelModes.NativeLabels([:a,:b,:c,:d],Val{4}))) <: LabelModes.NativeLabels{Symbol,4}
+        @test typeof(@inferred(LabelModes.NativeLabels([1,2],Val{2}))) <: MLLabelUtils.BinaryLabelMode
+    end
 end
 
 @testset "interface" begin
@@ -301,6 +315,53 @@ end
                     @test @inferred(labels(lm)) == collect(1:K)
                     @test eltype(@inferred(labels(lm))) <: Int
                 end
+            end
+        end
+    end
+
+    @testset "NativeLabels" begin
+        @testset "binary" begin
+            for T in (Float64,Int,Float32)
+                lm = labelmode(T[-2,3])
+                @test poslabel(lm) === T(3)
+                @test neglabel(lm) === T(-2)
+            end
+            for targets in ([:yes,:no,:yes], ["yes","yes","no"], [3,-2], [1.4,1.3])
+                lm = labelmode(targets)
+                @test typeof(lm) <: MLLabelUtils.BinaryLabelMode
+                @test typeof(lm) <: LabelModes.NativeLabels{eltype(targets),length(unique(targets))}
+                @test @inferred(isposlabel(labels(lm)[1], lm)) === true
+                @test @inferred(isposlabel(labels(lm)[2], lm)) === false
+                @test @inferred(isposlabel(:nix, lm)) === false
+                @test @inferred(isposlabel(1, lm)) === false
+                @test @inferred(isposlabel(2, lm)) === false
+                @test @inferred(isneglabel(labels(lm)[1], lm)) === false
+                @test @inferred(isneglabel(labels(lm)[2], lm)) === true
+                @test @inferred(isneglabel(:nix, lm)) === false
+                @test @inferred(isneglabel(1, lm)) === false
+                @test @inferred(isneglabel(2, lm)) === false
+                @test lm.labels == unique(targets)
+                @test @inferred(labels(lm)) == unique(targets)
+                @test eltype(@inferred(labels(lm))) <: eltype(targets)
+                @test @inferred(nlabels(lm)) === length(unique(targets))
+            end
+        end
+        @testset "multiclass"  begin
+            for targets in ([:yes,:maybe,:no,:yes], ["yes","noidea","yes","no"], [1.2,3,2], rand(50))
+                lm = labelmode(targets)
+                @test typeof(lm) <: LabelModes.NativeLabels{eltype(targets),length(unique(targets))}
+                @test_throws MethodError isposlabel(:yes, lm)
+                @test_throws MethodError isneglabel(:neg, lm)
+                @test_throws MethodError isposlabel(true, lm)
+                @test_throws MethodError isneglabel(false, lm)
+                @test_throws MethodError isposlabel(1,lm)
+                @test_throws MethodError isneglabel(2,lm)
+                @test_throws MethodError poslabel(lm)
+                @test_throws MethodError neglabel(lm)
+                @test lm.labels == unique(targets)
+                @test @inferred(labels(lm)) == unique(targets)
+                @test eltype(@inferred(labels(lm))) <: eltype(targets)
+                @test @inferred(nlabels(lm)) === length(unique(targets))
             end
         end
     end
