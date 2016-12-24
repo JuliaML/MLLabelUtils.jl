@@ -39,7 +39,12 @@ module LabelModes
     """
     immutable OneVsRest{T} <: BinaryLabelMode
         poslabel::T
+        neglabel::T
     end
+    OneVsRest(poslabel::Bool) = OneVsRest{Bool}(poslabel, !poslabel)
+    OneVsRest(poslabel::String) = OneVsRest{String}(poslabel, "not_$(poslabel)")
+    OneVsRest(poslabel::Symbol) = OneVsRest{Symbol}(poslabel, Symbol(:not_, poslabel))
+    OneVsRest{T<:Number}(poslabel::T) = OneVsRest{T}(poslabel, poslabel == 0 ? poslabel+one(T) : zero(T))
 
     for KIND in (:Indices, :OneOfK)
         @eval begin
@@ -85,6 +90,7 @@ end # submodule
 
 _ambiguous() = throw(ArgumentError("Can't infer the label meaning because argument types or values are ambiguous. Please specify the desired LabelMode manually."))
 
+# Query the labels
 poslabel(::LabelModes.TrueFalse) = true
 neglabel(::LabelModes.TrueFalse) = false
 poslabel{T}(::LabelModes.ZeroOne{T}) = one(T)
@@ -92,10 +98,7 @@ neglabel{T}(::LabelModes.ZeroOne{T}) = zero(T)
 poslabel{T}(::LabelModes.MarginBased{T}) = one(T)
 neglabel{T}(::LabelModes.MarginBased{T}) = -one(T)
 poslabel(ovr::LabelModes.OneVsRest) = ovr.poslabel
-neglabel(ovr::LabelModes.OneVsRest{Bool}) = !ovr.poslabel
-neglabel(ovr::LabelModes.OneVsRest{String}) = "not_$(ovr.poslabel)"
-neglabel(ovr::LabelModes.OneVsRest{Symbol}) = Symbol(:not_, ovr.poslabel)
-neglabel{T<:Number}(ovr::LabelModes.OneVsRest{T}) = ovr.poslabel == 0 ? ovr.poslabel+one(T) : zero(T)
+neglabel(ovr::LabelModes.OneVsRest) = ovr.neglabel
 poslabel{T}(::LabelModes.Indices{T,2}) = T(1)
 neglabel{T}(::LabelModes.Indices{T,2}) = T(2)
 poslabel{T}(::LabelModes.OneOfK{T,2}) = 1

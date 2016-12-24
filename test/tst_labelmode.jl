@@ -45,10 +45,18 @@
 
     @testset "OneVsRest" begin
         @test LabelModes.OneVsRest <: MLLabelUtils.LabelMode{2}
+        @test_throws MethodError LabelModes.OneVsRest([1,2])
+        @test_throws MethodError LabelModes.OneVsRest(:yes, nothing)
+        @test_throws MethodError LabelModes.OneVsRest(:yes, "no")
+        @test typeof(@inferred(LabelModes.OneVsRest([1,2],[2,1])))  <: LabelModes.OneVsRest{Vector{Int}}
         @test typeof(@inferred(LabelModes.OneVsRest(:yes)))  <: LabelModes.OneVsRest{Symbol}
+        @test typeof(@inferred(LabelModes.OneVsRest(:yes, :no)))  <: LabelModes.OneVsRest{Symbol}
         @test typeof(@inferred(LabelModes.OneVsRest(true)))  <: LabelModes.OneVsRest{Bool}
+        @test typeof(@inferred(LabelModes.OneVsRest(true, false)))  <: LabelModes.OneVsRest{Bool}
         @test typeof(@inferred(LabelModes.OneVsRest("yes"))) <: LabelModes.OneVsRest{String}
-        @test typeof(@inferred(LabelModes.OneVsRest(1)))     <: LabelModes.OneVsRest{Int}
+        @test typeof(@inferred(LabelModes.OneVsRest("yes", "no"))) <: LabelModes.OneVsRest{String}
+        @test typeof(@inferred(LabelModes.OneVsRest(1)))   <: LabelModes.OneVsRest{Int}
+        @test typeof(@inferred(LabelModes.OneVsRest(1,4))) <: LabelModes.OneVsRest{Int}
     end
 
     @testset "Indices" begin
