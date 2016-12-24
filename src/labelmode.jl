@@ -41,45 +41,45 @@ module LabelModes
         poslabel::T
     end
 
-    """
-    TODO
-    """
-    immutable Indices{T<:Number,K} <: LabelMode{K}
-        function Indices()
-            typeof(K) <: Int || throw(TypeError(:Indices,"constructor when checking typeof(K)",Type{Int},typeof(K)))
-            new()
-        end
-    end
-    Indices{T,K}(::Type{T}, ::Type{Val{K}}) = Indices{T,K}()
-    Indices{K}(::Type{Val{K}}) = Indices(Int,Val{K})
-    Indices{T}(::Type{T}, K::Number) = Indices(T,Val{Int(K)})
-    Indices(K::Number) = Indices(Int,Val{Int(K)})
-
-    for KIND in (:NativeLabels, :OneOfK)
+    for KIND in (:Indices, :OneOfK)
         @eval begin
-            immutable ($KIND){T,K} <: LabelMode{K}
-                labels::Vector{T}
-                invlabels::Dict{T,Int}
-                function ($KIND)(labels::Vector{T})
+            immutable ($KIND){T<:Number,K} <: LabelMode{K}
+                function ($KIND)()
                     typeof(K) <: Int || throw(TypeError(Symbol($(string(KIND))),"constructor when checking typeof(K)",Type{Int},typeof(K)))
-                    @assert length(labels) == length(unique(labels)) == K
-                    new(labels, Dict(zip(labels,1:K)))
+                    new()
                 end
             end
-            ($KIND){T,K}(labels::Vector{T}, ::Type{Val{K}}) = $KIND{T,K}(labels)
-            ($KIND)(labels::Vector) = $KIND(labels, Val{length(labels)})
+            ($KIND){T,K}(::Type{T}, ::Type{Val{K}}) = ($KIND){T,K}()
+            ($KIND){K}(::Type{Val{K}}) = ($KIND)(Int,Val{K})
+            ($KIND){T}(::Type{T}, K::Number) = ($KIND)(T,Val{Int(K)})
+            ($KIND)(K::Number) = ($KIND)(Int,Val{Int(K)})
         end
     end
 
     @doc """
     TODO
     """ ->
-    NativeLabels
+    Indices
 
     @doc """
     TODO
     """ ->
     OneOfK
+
+    """
+    TODO
+    """
+    immutable NativeLabels{T,K} <: LabelMode{K}
+        labels::Vector{T}
+        invlabels::Dict{T,Int}
+        function NativeLabels(labels::Vector{T})
+            typeof(K) <: Int || throw(TypeError(:NativeLabels,"constructor when checking typeof(K)",Type{Int},typeof(K)))
+            @assert length(labels) == length(unique(labels)) == K
+            new(labels, Dict(zip(labels,1:K)))
+        end
+    end
+    NativeLabels{T,K}(labels::Vector{T}, ::Type{Val{K}}) = NativeLabels{T,K}(labels)
+    NativeLabels(labels::Vector) = NativeLabels(labels, Val{length(labels)})
 
 end # submodule
 
@@ -98,15 +98,15 @@ neglabel(ovr::LabelModes.OneVsRest{Symbol}) = Symbol(:not_, ovr.poslabel)
 neglabel{T<:Number}(ovr::LabelModes.OneVsRest{T}) = ovr.poslabel == 0 ? ovr.poslabel+one(T) : zero(T)
 poslabel{T}(::LabelModes.Indices{T,2}) = T(1)
 neglabel{T}(::LabelModes.Indices{T,2}) = T(2)
-poslabel{T}(lm::LabelModes.OneOfK{T,2}) = lm.labels[1]
-neglabel{T}(lm::LabelModes.OneOfK{T,2}) = lm.labels[2]
+poslabel{T}(::LabelModes.OneOfK{T,2}) = 1
+neglabel{T}(::LabelModes.OneOfK{T,2}) = 2
 poslabel{T}(lm::LabelModes.NativeLabels{T,2}) = lm.labels[1]
 neglabel{T}(lm::LabelModes.NativeLabels{T,2}) = lm.labels[2]
 
 labels(lm::LabelModes.BinaryLabelMode) = [poslabel(lm), neglabel(lm)]
 labels{T,K}(::LabelModes.Indices{T,K}) = collect(one(T):T(K))
+labels{T,K}(::LabelModes.OneOfK{T,K})  = collect(1:K)
 labels(lm::LabelModes.NativeLabels) = lm.labels
-labels(lm::LabelModes.OneOfK) = lm.labels
 
 # What it means to be a positive label
 isposlabel(value, ::LabelModes.FuzzyBinary) = _ambiguous()
@@ -114,13 +114,15 @@ isposlabel(value, ovr::LabelModes.OneVsRest) = (value == ovr.poslabel)
 isposlabel(value::Bool, ::LabelModes.FuzzyBinary) = value
 isposlabel(value::Bool, ::LabelModes.TrueFalse)   = value
 isposlabel(value::Bool, ::LabelModes.MarginBased) = throw(MethodError(isposlabel,(value,)))
-isposlabel(value::Bool, ::LabelModes.Indices) = throw(MethodError(isposlabel,(value,)))
+isposlabel(value::Bool, ::LabelModes.Indices)     = throw(MethodError(isposlabel,(value,)))
+isposlabel(value::Bool, ::LabelModes.OneOfK)      = throw(MethodError(isposlabel,(value,)))
 isposlabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value > zero(T))
 isposlabel{T<:Number}(value::T, zo::LabelModes.ZeroOne)    = (value >= zo.cutoff)
 isposlabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) == one(T))
 isposlabel{T}(value::Number, lm::LabelModes.Indices{T,2})  = value == poslabel(lm)
-isposlabel{T}(value, lm::LabelModes.OneOfK{T,2})       = value == poslabel(lm)
-isposlabel{T}(value, lm::LabelModes.NativeLabels{T,2}) = value == poslabel(lm)
+isposlabel{T}(value::Number, lm::LabelModes.OneOfK{T,2})   = value == poslabel(lm)
+isposlabel{R<:Number,T}(value::AbstractVector{R}, lm::LabelModes.OneOfK{T,2}) = indmax(value) == poslabel(lm)
+isposlabel{T}(value, lm::LabelModes.NativeLabels{T,2})     = value == poslabel(lm)
 
 # What it means to be a negative label
 isneglabel(value, ::LabelModes.FuzzyBinary) = _ambiguous()
@@ -129,12 +131,14 @@ isneglabel(value::Bool, ::LabelModes.FuzzyBinary) = !value
 isneglabel(value::Bool, ::LabelModes.TrueFalse)   = !value
 isneglabel(value::Bool, ::LabelModes.MarginBased) = throw(MethodError(isneglabel,(value,)))
 isneglabel(value::Bool, ::LabelModes.Indices)     = throw(MethodError(isneglabel,(value,)))
+isneglabel(value::Bool, ::LabelModes.OneOfK)      = throw(MethodError(isneglabel,(value,)))
 isneglabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value <= zero(T))
 isneglabel{T<:Number}(value::T, zo::LabelModes.ZeroOne)    = (value < zo.cutoff)
 isneglabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) == -one(T))
 isneglabel{T}(value::Number, lm::LabelModes.Indices{T,2})  = value == neglabel(lm)
-isneglabel{T}(value, lm::LabelModes.OneOfK{T,2})       = value == neglabel(lm)
-isneglabel{T}(value, lm::LabelModes.NativeLabels{T,2}) = value == neglabel(lm)
+isneglabel{T}(value::Number, lm::LabelModes.OneOfK{T,2})   = value == neglabel(lm)
+isneglabel{R<:Number,T}(value::AbstractVector{R}, lm::LabelModes.OneOfK{T,2}) = indmax(value) == neglabel(lm)
+isneglabel{T}(value, lm::LabelModes.NativeLabels{T,2})     = value == neglabel(lm)
 
 # Automatic determination of label mode
 labelmode(target) = _ambiguous()
