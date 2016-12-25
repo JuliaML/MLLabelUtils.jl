@@ -17,6 +17,7 @@
 
     @testset "ZeroOne" begin
         @test LabelModes.ZeroOne <: MLLabelUtils.LabelMode{2}
+        @test typeof(@inferred(LabelModes.ZeroOne{Int,Float32}())) <: LabelModes.ZeroOne{Int,Float32}
         @test typeof(@inferred(LabelModes.ZeroOne())) <: LabelModes.ZeroOne{Float64,Float64}
         @test typeof(@inferred(LabelModes.ZeroOne(0))) <: LabelModes.ZeroOne{Int,Int}
         @test typeof(@inferred(LabelModes.ZeroOne(0.0))) <: LabelModes.ZeroOne{Float64,Float64}

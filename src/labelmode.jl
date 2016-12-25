@@ -20,7 +20,7 @@ module LabelModes
     """
     immutable ZeroOne{T<:Number,R<:Number} <: BinaryLabelMode
         cutoff::R
-        function ZeroOne(cutoff::R)
+        function ZeroOne(cutoff::R = R(0.5))
             @assert 0 <= cutoff <= 1
             new(cutoff)
         end
@@ -89,6 +89,15 @@ module LabelModes
 end # submodule
 
 _ambiguous() = throw(ArgumentError("Can't infer the label meaning because argument types or values are ambiguous. Please specify the desired LabelMode manually."))
+
+Base.eltype(::Type{LabelModes.FuzzyBinary}) = Any
+Base.eltype(::Type{LabelModes.TrueFalse})   = Bool
+Base.eltype{T,R}(::Type{LabelModes.ZeroOne{T,R}}) = T
+Base.eltype{T}(::Type{LabelModes.MarginBased{T}}) = T
+Base.eltype{T}(::Type{LabelModes.OneVsRest{T}})   = T
+Base.eltype{T,K}(::Type{LabelModes.OneOfK{T,K}})  = T
+Base.eltype{T,K}(::Type{LabelModes.Indices{T,K}}) = T
+Base.eltype{T,K}(::Type{LabelModes.NativeLabels{T,K}}) = T
 
 # Query the labels
 poslabel(::LabelModes.TrueFalse) = true
