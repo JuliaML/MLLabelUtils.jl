@@ -104,6 +104,7 @@ end
 @testset "interface" begin
     @testset "FuzzyBinary" begin
         lm = LabelModes.FuzzyBinary()
+        @test MLLabelUtils.labeltype(lm) <: Any
         @test_throws ArgumentError isposlabel(:yes, lm)
         @test_throws ArgumentError isposlabel("yes", lm)
         @test_throws ArgumentError isneglabel(:no, lm)
@@ -133,6 +134,7 @@ end
         @test typeof(@inferred(labelmode([true,  true,  true])))  <: LabelModes.TrueFalse
         @test typeof(@inferred(labelmode([false, false, false]))) <: LabelModes.TrueFalse
         lm = LabelModes.TrueFalse()
+        @test MLLabelUtils.labeltype(lm) <: Bool
         @test_throws MethodError isposlabel(1, lm)
         @test_throws MethodError isposlabel(1., lm)
         @test_throws MethodError isposlabel(:yes, lm)
@@ -155,6 +157,7 @@ end
             for targets in (T[0,0,0], T[1,0,1], T[0,1,0])
                 @testset "$targets" begin
                     lm = labelmode(targets)
+                    @test MLLabelUtils.labeltype(lm) <: T
                     @test typeof(lm) <: LabelModes.ZeroOne{T,Float64}
                     @test lm.cutoff === 0.5
                     @test_throws MethodError isposlabel(:yes, lm)
@@ -182,6 +185,7 @@ end
             for targets in (T[-1,-1,-1], T[1,-1,1], T[-1,1,-1])
                 @testset "$targets" begin
                     lm = labelmode(targets)
+                    @test MLLabelUtils.labeltype(lm) <: T
                     @test typeof(lm) <: LabelModes.MarginBased{T}
                     @test_throws MethodError isposlabel(:yes, lm)
                     @test_throws MethodError isneglabel(:neg, lm)
@@ -216,6 +220,7 @@ end
                            (0, 1))
             @testset "pos=$pos, neg=$neg" begin
                 lm = @inferred LabelModes.OneVsRest(pos)
+                @test MLLabelUtils.labeltype(lm) <: typeof(pos)
                 @test @inferred(labels(lm)) == [pos, neg]
                 @test @inferred(poslabel(lm)) === pos
                 if typeof(neg) <: String
@@ -236,6 +241,7 @@ end
             for targets in (T[1,2,1], T[2,1,2])
                 @testset "binary $targets" begin
                     lm = labelmode(targets)
+                    @test MLLabelUtils.labeltype(lm) <: T
                     @test typeof(lm) <: LabelModes.Indices{T,2}
                     @test_throws MethodError isposlabel(:yes, lm)
                     @test_throws MethodError isneglabel(:neg, lm)
@@ -255,6 +261,7 @@ end
             for targets in (T[3,1,2,1], T[2,1,4,2])
                 @testset "multiclass $targets" begin
                     lm = labelmode(targets)
+                    @test MLLabelUtils.labeltype(lm) <: T
                     @test typeof(lm) <: LabelModes.Indices{T,Int(maximum(targets))}
                     @test_throws MethodError isposlabel(:yes, lm)
                     @test_throws MethodError isneglabel(:neg, lm)
@@ -276,6 +283,7 @@ end
         for T in (Int, UInt8, Int8, Float32, Float64)
             @testset "binary T = $T" begin
                 lm = LabelModes.OneOfK(T,2)
+                @test MLLabelUtils.labeltype(lm) <: T
                 @test typeof(lm) <: LabelModes.OneOfK{T,2}
                 @test_throws MethodError isposlabel(:yes, lm)
                 @test_throws MethodError isneglabel(:neg, lm)
@@ -325,11 +333,13 @@ end
         @testset "binary" begin
             for T in (Float64,Int,Float32)
                 lm = labelmode(T[-2,3])
+                @test MLLabelUtils.labeltype(lm) <: T
                 @test poslabel(lm) === T(3)
                 @test neglabel(lm) === T(-2)
             end
             for targets in ([:yes,:no,:yes], ["yes","yes","no"], [3,-2], [1.4,1.3])
                 lm = labelmode(targets)
+                @test MLLabelUtils.labeltype(lm) <: eltype(targets)
                 @test typeof(lm) <: MLLabelUtils.BinaryLabelMode
                 @test typeof(lm) <: LabelModes.NativeLabels{eltype(targets),length(unique(targets))}
                 @test @inferred(isposlabel(labels(lm)[1], lm)) === true

@@ -12,9 +12,11 @@
         # broadcast
         @test classify.(T[0.4,0.6], 0.5) == [0,1]
         @test classify.(T[0.4,0.6], LabelModes.ZeroOne) == [0,1]
+        @test classify(T[0.4,0.6], 0.5) == [0,1]
         @test classify(T[0.4,0.6], LabelModes.ZeroOne) == [0,1]
         @test eltype(classify.(T[0.4,0.6], 0.5)) <: T
         @test eltype(classify.(T[0.4,0.6], LabelModes.ZeroOne)) <: T
+        @test eltype(classify(T[0.4,0.6], 0.5)) <: T
         @test eltype(classify(T[0.4,0.6], LabelModes.ZeroOne)) <: T
     end
     for T in (Float16, Float32, Float64, UInt8, Int32, Int64)

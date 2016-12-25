@@ -35,7 +35,7 @@ end
 ## broadcast
 
 function classify{T}(values::AbstractVector{T}, cutoff::Number)
-    classify.(values, number)::Vector{T}
+    classify.(values, cutoff)::Vector{T}
 end
 
 for KIND in (:(LabelModes.MarginBased), :(LabelModes.ZeroOne))

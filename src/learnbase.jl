@@ -18,6 +18,7 @@ function neglabel end
 function labelmode end
 function isposlabel end
 function isneglabel end
+function labeltype end
 
 function classify end
 function convertlabels end
