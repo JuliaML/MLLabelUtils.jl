@@ -186,6 +186,7 @@ end
                     @test_throws MethodError isneglabel(:neg, lm)
                     @test_throws MethodError isposlabel(true, lm)
                     @test_throws MethodError isneglabel(false, lm)
+                    @test @inferred(isposlabel(zero(T), lm)) === true
                     @test @inferred(isposlabel(one(T), lm))  === true
                     @test @inferred(isposlabel(-one(T), lm)) === false
                     @test @inferred(isneglabel(one(T), lm))  === false

@@ -9,16 +9,18 @@ export
 
     poslabel,
     neglabel,
-    poslabel,
-    neglabel,
     isposlabel,
     isneglabel,
+
+    ObsDim,
+    classify,
 
     LabelModes,
     labelmode
 
 include("learnbase.jl")
 include("labelmode.jl")
+include("classify.jl")
 
 end # module
 

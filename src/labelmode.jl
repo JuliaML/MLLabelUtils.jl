@@ -121,7 +121,7 @@ isposlabel(value::Bool, ::LabelModes.Indices)     = throw(MethodError(isposlabel
 isposlabel(value::Bool, ::LabelModes.OneOfK)      = throw(MethodError(isposlabel,(value,)))
 isposlabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value > zero(T))
 isposlabel{T<:Number}(value::T, zo::LabelModes.ZeroOne)    = (value >= zo.cutoff)
-isposlabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) == one(T))
+isposlabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) >= zero(T))
 isposlabel{T}(value::Number, lm::LabelModes.Indices{T,2})  = value == poslabel(lm)
 isposlabel{T}(value::Number, lm::LabelModes.OneOfK{T,2})   = value == poslabel(lm)
 isposlabel{R<:Number,T}(value::AbstractVector{R}, lm::LabelModes.OneOfK{T,2}) = indmax(value) == poslabel(lm)

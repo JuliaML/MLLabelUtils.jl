@@ -3,6 +3,7 @@ using Base.Test
 
 tests = [
     "tst_labelmode.jl"
+    "tst_classify.jl"
 ]
 
 for t in tests
