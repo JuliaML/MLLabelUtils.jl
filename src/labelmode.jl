@@ -90,14 +90,15 @@ end # submodule
 
 _ambiguous() = throw(ArgumentError("Can't infer the label meaning because argument types or values are ambiguous. Please specify the desired LabelMode manually."))
 
-Base.eltype(::Type{LabelModes.FuzzyBinary}) = Any
-Base.eltype(::Type{LabelModes.TrueFalse})   = Bool
-Base.eltype{T,R}(::Type{LabelModes.ZeroOne{T,R}}) = T
-Base.eltype{T}(::Type{LabelModes.MarginBased{T}}) = T
-Base.eltype{T}(::Type{LabelModes.OneVsRest{T}})   = T
-Base.eltype{T,K}(::Type{LabelModes.OneOfK{T,K}})  = T
-Base.eltype{T,K}(::Type{LabelModes.Indices{T,K}}) = T
-Base.eltype{T,K}(::Type{LabelModes.NativeLabels{T,K}}) = T
+labeltype(lm::LabelMode) = labeltype(typeof(lm))
+labeltype(::Type{LabelModes.FuzzyBinary}) = Any
+labeltype(::Type{LabelModes.TrueFalse})   = Bool
+labeltype{T,R}(::Type{LabelModes.ZeroOne{T,R}}) = T
+labeltype{T}(::Type{LabelModes.MarginBased{T}}) = T
+labeltype{T}(::Type{LabelModes.OneVsRest{T}})   = T
+labeltype{T,K}(::Type{LabelModes.OneOfK{T,K}})  = T
+labeltype{T,K}(::Type{LabelModes.Indices{T,K}}) = T
+labeltype{T,K}(::Type{LabelModes.NativeLabels{T,K}}) = T
 
 # Query the labels
 poslabel(::LabelModes.TrueFalse) = true

@@ -1,6 +1,6 @@
 ## ZeroOne
 
-function classify{T<:Number}(value::T, cutoff::AbstractFloat)
+function classify{T<:Number}(value::T, cutoff::Number)
     value >= cutoff ? one(T) : zero(T)
 end
 
@@ -30,6 +30,26 @@ end
 
 function classify{T<:Number,R}(value::T, lm::LabelModes.MarginBased{R})
     R(_sign(value))
+end
+
+## broadcast
+
+function classify{T}(values::AbstractVector{T}, cutoff::Number)
+    classify.(values, number)::Vector{T}
+end
+
+for KIND in (:(LabelModes.MarginBased), :(LabelModes.ZeroOne))
+    @eval begin
+        function classify{T}(values::AbstractVector{T}, ::Type{($KIND)})
+            classify.(values, ($KIND))::Vector{T}
+        end
+        function classify{T,R}(values::AbstractVector{T}, ::Type{($KIND){R}})
+            classify.(values, ($KIND){R})::Vector{labeltype(($KIND)(R))}
+        end
+        function classify{T,L<:($KIND)}(values::AbstractVector{T}, lm::L)
+            classify.(values, lm)::Vector{labeltype(L)}
+        end
+    end
 end
 
 ## OneOfK

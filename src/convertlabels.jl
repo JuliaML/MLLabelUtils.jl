@@ -18,12 +18,12 @@ _lm{K}(::Type{LabelModes.Indices}, ::Type, ::Type{Val{K}}) = LabelModes.Indices(
 _lm{D,K}(::Type{LabelModes.OneOfK{D}},  ::Type, ::Type{Val{K}}) = LabelModes.OneOfK(D,Val{K})
 _lm{D,K}(::Type{LabelModes.Indices{D}}, ::Type, ::Type{Val{K}}) = LabelModes.Indices(D,Val{K})
 
-function convertlabels{T<:MLLabelUtils.BinaryLabelMode}(dst::T, x, src::MLLabelUtils.BinaryLabelMode)::eltype(T)
+function convertlabels{T<:MLLabelUtils.BinaryLabelMode}(dst::T, x, src::MLLabelUtils.BinaryLabelMode)::labeltype(T)
     isposlabel(x, src) ? poslabel(dst) : neglabel(dst)
 end
 
 function convertlabels{T<:MLLabelUtils.BinaryLabelMode}(dst::T, values::AbstractVector, src::MLLabelUtils.BinaryLabelMode)
-    convertlabels.(dst, values, src)::Vector{eltype(T)}
+    convertlabels.(dst, values, src)::Vector{labeltype(T)}
 end
 
 function convertlabels{L<:MLLabelUtils.LabelMode}(::Type{L}, values::AbstractVector{Bool}, src::LabelModes.TrueFalse)
