@@ -194,4 +194,15 @@ function labelmode{T<:Number}(targets::AbstractVector{T})
 end
 
 # TODO: Multilabel (Matrix as targets)
+function labelmode{T<:Number}(targets::AbstractMatrix{T}; obsdim = LearnBase.default_obsdim(targets))
+    labelmode(targets, LearnBase.obs_dim(obsdim))
+end
+
+function labelmode{T<:Number}(targets::AbstractMatrix{T}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
+    LabelModes.OneOfK(T,size(targets,1))
+end
+
+function labelmode{T<:Number}(targets::AbstractMatrix{T}, ::ObsDim.First)
+    LabelModes.OneOfK(T,size(targets,2))
+end
 

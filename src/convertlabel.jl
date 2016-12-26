@@ -30,15 +30,15 @@ function convertlabel{T<:MLLabelUtils.BinaryLabelMode}(dst::T, values::AbstractV
     convertlabel.(dst, values, src)::Vector{labeltype(T)}
 end
 
-function convertlabel{L<:MLLabelUtils.LabelMode}(::Type{L}, values::AbstractVector{Bool}, src::LabelModes.TrueFalse)
-    convertlabel(_lm(L,Val{2}), values, src)
+function convertlabel{L<:MLLabelUtils.LabelMode,K}(::Type{L}, values::AbstractArray{Bool}, src::MLLabelUtils.LabelMode{K})
+    convertlabel(_lm(L,Val{K}), values, src)
 end
 
-function convertlabel{L<:MLLabelUtils.LabelMode,T,K}(::Type{L}, values::AbstractVector{T}, src::MLLabelUtils.LabelMode{K})
+function convertlabel{L<:MLLabelUtils.LabelMode,T,K}(::Type{L}, values::AbstractArray{T}, src::MLLabelUtils.LabelMode{K})
     convertlabel(_lm(L,T,Val{K}), values, src)
 end
 
-convertlabel(dst, values::AbstractVector) = convertlabel(dst, values, labelmode(values))
+convertlabel(dst, values::AbstractArray) = convertlabel(dst, values, labelmode(values))
 
 ## OneVsRest
 
@@ -64,15 +64,19 @@ convertlabel(dst, values, src_lbl::AbstractVector) = convertlabel(dst, values, L
 
 ## OneOfK
 
+function convertlabel{T}(dst::MLLabelUtils.BinaryLabelMode, values::AbstractMatrix, src::LabelModes.OneOfK{T,2})
+    convertlabel(dst, values, src, LearnBase.default_obsdim(values))
+end
+
 function convertlabel{T<:LabelModes.OneOfK}(dst::T, values::AbstractVector, src::MLLabelUtils.BinaryLabelMode)
     convertlabel(dst, values, src, LearnBase.default_obsdim(values))
 end
 
-function convertlabel{L<:LabelModes.OneOfK}(::Type{L}, values::AbstractVector{Bool}, src::LabelModes.TrueFalse, obsdim)
-    convertlabel(_lm(L,Val{2}), values, src, obsdim)
+function convertlabel{L<:LabelModes.OneOfK,K}(::Type{L}, values::AbstractArray{Bool}, src::MLLabelUtils.LabelMode{K}, obsdim)
+    convertlabel(_lm(L,Val{K}), values, src, obsdim)
 end
 
-function convertlabel{L<:LabelModes.OneOfK,T,K}(::Type{L}, values::AbstractVector{T}, src::MLLabelUtils.LabelMode{K}, obsdim)
+function convertlabel{L<:LabelModes.OneOfK,T,K}(::Type{L}, values::AbstractArray{T}, src::MLLabelUtils.LabelMode{K}, obsdim)
     convertlabel(_lm(L,T,Val{K}), values, src, obsdim)
 end
 
@@ -96,12 +100,26 @@ end
 function convertlabel{T,K}(dst::LabelModes.OneOfK{T,K}, values::AbstractVector, src::MLLabelUtils.BinaryLabelMode, ::ObsDim.First)
     n = length(values)
     buffer = zeros(T, n, K)
-    for i in 1:n
+    @inbounds for i in 1:n
         if isposlabel(values[i], src)
             buffer[i,1] = one(T)
         else
             buffer[i,2] = one(T)
         end
+    end
+    buffer
+end
+
+function convertlabel{TD,TS}(dst::LabelModes.OneOfK{TD,2}, values::AbstractMatrix, src::LabelModes.OneOfK{TS,2}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
+    Matrix{TD}(values)
+end
+
+function convertlabel{L<:MLLabelUtils.BinaryLabelMode,T}(dst::L, values::AbstractMatrix, src::LabelModes.OneOfK{T,2}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
+    @assert size(values,1) >= 2
+    n = size(values, 2)
+    buffer = Array{labeltype(L)}(n)
+    @inbounds for i in 1:n
+        buffer[i] = values[1,i] >= values[2,i] ? poslabel(dst) : neglabel(dst)
     end
     buffer
 end

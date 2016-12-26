@@ -21,6 +21,8 @@ _dst_eltype(::Type{Bool}, default) = default
             (LabelModes.OneVsRest(:yes),[:yes,:no,:yes,:maybe,:no,:yes]),
             (LabelModes.NativeLabels([:a,:b]),[:a,:b,:a,:b,:b,:a]),
             ([:a,:b],[:a,:b,:a,:b,:b,:a]),
+            (LabelModes.OneOfK(Bool,2),Bool[1 0 1 0 0 1; 0 1 0 1 1 0]),
+            (LabelModes.OneOfK(Int8,2),Int8[1 0 1 0 0 1; 0 1 0 1 1 0]),
         )
         for (dst_lm, dst_x) in (
                 (LabelModes.TrueFalse,[true,false,true,false,false,true]),
@@ -41,8 +43,9 @@ _dst_eltype(::Type{Bool}, default) = default
                 (LabelModes.NativeLabels([:a,:b]),[:a,:b,:a,:b,:b,:a]),
                 ([:a,:b],[:a,:b,:a,:b,:b,:a]),
                 (LabelModes.OneOfK,(_dst_eltype(eltype(src_x),Int))[1 0 1 0 0 1; 0 1 0 1 1 0]),
+                (LabelModes.OneOfK{UInt8},UInt8[1 0 1 0 0 1; 0 1 0 1 1 0]),
                 (LabelModes.OneOfK{Float32},Float32[1 0 1 0 0 1; 0 1 0 1 1 0]),
-                (LabelModes.OneOfK(Bool,3),Bool[1 0 1 0 0 1; 0 1 0 1 1 0; 0 0 0 0 0 0]),
+                (LabelModes.OneOfK(Bool,2),Bool[1 0 1 0 0 1; 0 1 0 1 1 0]),
             )
             @testset "($src_lm) $src_x -> ($dst_lm) $dst_x" begin
                 if !(typeof(src_lm)<:LabelModes.FuzzyBinary) && !((typeof(src_lm) <: LabelModes.OneVsRest)$(typeof(dst_lm) <: LabelModes.OneVsRest))
@@ -52,7 +55,7 @@ _dst_eltype(::Type{Bool}, default) = default
                 end
                 res = if typeof(src_lm) <: Vector && typeof(dst_lm) <: DataType && (dst_lm <: LabelModes.Indices || dst_lm <: LabelModes.OneOfK)
                     # in this situation K can not be inferred
-                    # this is because we neither specify in src or dst the number of labels in compile time
+                    # this is because we neither specify in src or dst the number of labels at compile time
                     convertlabel(dst_lm, src_x, src_lm)
                 elseif typeof(src_lm) <: Vector && typeof(dst_lm) <: Vector
                     # same here
