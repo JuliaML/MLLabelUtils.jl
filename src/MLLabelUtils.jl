@@ -4,8 +4,13 @@ using LearnBase
 
 export
 
-    labels,
-    nlabels,
+    ind2label,
+    label2ind,
+
+    labeltype,
+
+    label,
+    nlabel,
 
     poslabel,
     neglabel,

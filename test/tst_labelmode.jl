@@ -5,18 +5,18 @@
     end
 
     @testset "FuzzyBinary" begin
-        @test LabelModes.FuzzyBinary <: MLLabelUtils.LabelMode{2}
-        @test_throws MethodError labels(LabelModes.FuzzyBinary())
-        @test @inferred(nlabels(LabelModes.FuzzyBinary())) === 2
+        @test LabelModes.FuzzyBinary <: MLLabelUtils.BinaryLabelMode
+        @test_throws MethodError label(LabelModes.FuzzyBinary())
+        @test @inferred(nlabel(LabelModes.FuzzyBinary())) === 2
     end
 
     @testset "TrueFalse" begin
-        @test LabelModes.TrueFalse <: MLLabelUtils.LabelMode{2}
+        @test LabelModes.TrueFalse <: MLLabelUtils.BinaryLabelMode
         @test typeof(@inferred(LabelModes.TrueFalse())) <: LabelModes.TrueFalse
     end
 
     @testset "ZeroOne" begin
-        @test LabelModes.ZeroOne <: MLLabelUtils.LabelMode{2}
+        @test LabelModes.ZeroOne <: MLLabelUtils.BinaryLabelMode
         @test typeof(@inferred(LabelModes.ZeroOne{Int,Float32}())) <: LabelModes.ZeroOne{Int,Float32}
         @test typeof(@inferred(LabelModes.ZeroOne())) <: LabelModes.ZeroOne{Float64,Float64}
         @test typeof(@inferred(LabelModes.ZeroOne(0))) <: LabelModes.ZeroOne{Int,Int}
@@ -37,7 +37,7 @@
     end
 
     @testset "MarginBased" begin
-        @test LabelModes.MarginBased <: MLLabelUtils.LabelMode{2}
+        @test LabelModes.MarginBased <: MLLabelUtils.BinaryLabelMode
         @test typeof(@inferred(LabelModes.MarginBased())) <: LabelModes.MarginBased{Float64}
         @test typeof(@inferred(LabelModes.MarginBased(Int))) <: LabelModes.MarginBased{Int}
         @test typeof(@inferred(LabelModes.MarginBased(Float64))) <: LabelModes.MarginBased{Float64}
@@ -45,7 +45,7 @@
     end
 
     @testset "OneVsRest" begin
-        @test LabelModes.OneVsRest <: MLLabelUtils.LabelMode{2}
+        @test LabelModes.OneVsRest <: MLLabelUtils.BinaryLabelMode
         @test_throws MethodError LabelModes.OneVsRest([1,2])
         @test_throws MethodError LabelModes.OneVsRest(:yes, nothing)
         @test_throws MethodError LabelModes.OneVsRest(:yes, "no")
@@ -123,10 +123,10 @@ end
         @test @inferred(isneglabel(0.1, lm)) === false
         @test @inferred(isneglabel(0.5, lm)) === false
         @test @inferred(isneglabel(-1, lm))  === true
-        @test @inferred(nlabels(lm)) === 2
+        @test @inferred(nlabel(lm)) === 2
         @test_throws MethodError poslabel(lm)
         @test_throws MethodError neglabel(lm)
-        @test_throws MethodError labels(lm)
+        @test_throws MethodError label(lm)
     end
 
     @testset "TrueFalse" begin
@@ -145,11 +145,11 @@ end
         @test @inferred(isposlabel(false, lm)) === false
         @test @inferred(isneglabel(true, lm))  === false
         @test @inferred(isneglabel(false, lm)) === true
-        @test @inferred(nlabels(lm))  === 2
+        @test @inferred(nlabel(lm))  === 2
         @test @inferred(poslabel(lm)) === true
         @test @inferred(neglabel(lm)) === false
-        @test @inferred(labels(lm)) == [true, false]
-        @test eltype(@inferred(labels(lm))) <: Bool
+        @test @inferred(label(lm)) == [true, false]
+        @test eltype(@inferred(label(lm))) <: Bool
     end
 
     @testset "ZeroOne" begin
@@ -170,11 +170,11 @@ end
                     @test @inferred(isposlabel(zero(T), lm)) === false
                     @test @inferred(isneglabel(one(T), lm))  === false
                     @test @inferred(isneglabel(zero(T), lm)) === true
-                    @test @inferred(nlabels(lm))  === 2
+                    @test @inferred(nlabel(lm))  === 2
                     @test @inferred(poslabel(lm)) === T(1)
                     @test @inferred(neglabel(lm)) === T(0)
-                    @test @inferred(labels(lm)) == T[1, 0]
-                    @test eltype(@inferred(labels(lm))) <: T
+                    @test @inferred(label(lm)) == T[1, 0]
+                    @test eltype(@inferred(label(lm))) <: T
                 end
             end
         end
@@ -196,19 +196,19 @@ end
                     @test @inferred(isposlabel(-one(T), lm)) === false
                     @test @inferred(isneglabel(one(T), lm))  === false
                     @test @inferred(isneglabel(-one(T), lm)) === true
-                    @test @inferred(nlabels(lm))  === 2
+                    @test @inferred(nlabel(lm))  === 2
                     @test @inferred(poslabel(lm)) === T(1)
                     @test @inferred(neglabel(lm)) === T(-1)
-                    @test @inferred(labels(lm)) == T[1, -1]
-                    @test eltype(@inferred(labels(lm))) <: T
+                    @test @inferred(label(lm)) == T[1, -1]
+                    @test eltype(@inferred(label(lm))) <: T
                 end
             end
         end
     end
 
     @testset "OneVsRest" begin
-        @test_throws MethodError labels(LabelModes.OneVsRest(rand(2,2)))
-        @test_throws MethodError labels(LabelModes.OneVsRest(rand(2)))
+        @test_throws MethodError label(LabelModes.OneVsRest(rand(2,2)))
+        @test_throws MethodError label(LabelModes.OneVsRest(rand(2)))
         for (pos, neg) in ((:pos, :not_pos),
                            ("pos", "not_pos"),
                            (true, false),
@@ -221,7 +221,7 @@ end
             @testset "pos=$pos, neg=$neg" begin
                 lm = @inferred LabelModes.OneVsRest(pos)
                 @test MLLabelUtils.labeltype(lm) <: typeof(pos)
-                @test @inferred(labels(lm)) == [pos, neg]
+                @test @inferred(label(lm)) == [pos, neg]
                 @test @inferred(poslabel(lm)) === pos
                 if typeof(neg) <: String
                     @test @inferred(neglabel(lm)) == neg
@@ -251,11 +251,11 @@ end
                     @test @inferred(isposlabel(2one(T), lm)) === false
                     @test @inferred(isneglabel(one(T), lm))  === false
                     @test @inferred(isneglabel(2one(T), lm)) === true
-                    @test @inferred(nlabels(lm))  === 2
+                    @test @inferred(nlabel(lm))  === 2
                     @test @inferred(poslabel(lm)) === T(1)
                     @test @inferred(neglabel(lm)) === T(2)
-                    @test @inferred(labels(lm)) == T[1, 2]
-                    @test eltype(@inferred(labels(lm))) <: T
+                    @test @inferred(label(lm)) == T[1, 2]
+                    @test eltype(@inferred(label(lm))) <: T
                 end
             end
             for targets in (T[3,1,2,1], T[2,1,4,2])
@@ -271,9 +271,9 @@ end
                     @test_throws MethodError isneglabel(T(2),lm)
                     @test_throws MethodError poslabel(lm)
                     @test_throws MethodError neglabel(lm)
-                    @test @inferred(nlabels(lm)) === Int(maximum(targets))
-                    @test @inferred(labels(lm)) == Vector{T}(collect(1:maximum(targets)))
-                    @test eltype(@inferred(labels(lm))) <: T
+                    @test @inferred(nlabel(lm)) === Int(maximum(targets))
+                    @test @inferred(label(lm)) == Vector{T}(collect(1:maximum(targets)))
+                    @test eltype(@inferred(label(lm))) <: T
                 end
             end
         end
@@ -293,11 +293,11 @@ end
                 @test @inferred(isposlabel(2, lm)) === false
                 @test @inferred(isneglabel(1, lm)) === false
                 @test @inferred(isneglabel(2, lm)) === true
-                @test @inferred(nlabels(lm))  === 2
+                @test @inferred(nlabel(lm))  === 2
                 @test @inferred(poslabel(lm)) === 1
                 @test @inferred(neglabel(lm)) === 2
-                @test @inferred(labels(lm)) == [1, 2]
-                @test eltype(@inferred(labels(lm))) <: Int
+                @test @inferred(label(lm)) == [1, 2]
+                @test eltype(@inferred(label(lm))) <: Int
                 @test @inferred(isposlabel([.6,.4], lm)) === true
                 @test @inferred(isposlabel([.3,.7], lm)) === false
                 @test @inferred(isneglabel([.9,.1], lm)) === false
@@ -321,9 +321,9 @@ end
                     @test_throws MethodError isneglabel(T(2),lm)
                     @test_throws MethodError poslabel(lm)
                     @test_throws MethodError neglabel(lm)
-                    @test @inferred(nlabels(lm)) === K
-                    @test @inferred(labels(lm)) == collect(1:K)
-                    @test eltype(@inferred(labels(lm))) <: Int
+                    @test @inferred(nlabel(lm)) === K
+                    @test @inferred(label(lm)) == collect(1:K)
+                    @test eltype(@inferred(label(lm))) <: Int
                 end
             end
         end
@@ -342,20 +342,20 @@ end
                 @test MLLabelUtils.labeltype(lm) <: eltype(targets)
                 @test typeof(lm) <: MLLabelUtils.BinaryLabelMode
                 @test typeof(lm) <: LabelModes.NativeLabels{eltype(targets),length(unique(targets))}
-                @test @inferred(isposlabel(labels(lm)[1], lm)) === true
-                @test @inferred(isposlabel(labels(lm)[2], lm)) === false
+                @test @inferred(isposlabel(label(lm)[1], lm)) === true
+                @test @inferred(isposlabel(label(lm)[2], lm)) === false
                 @test @inferred(isposlabel(:nix, lm)) === false
                 @test @inferred(isposlabel(1, lm)) === false
                 @test @inferred(isposlabel(2, lm)) === false
-                @test @inferred(isneglabel(labels(lm)[1], lm)) === false
-                @test @inferred(isneglabel(labels(lm)[2], lm)) === true
+                @test @inferred(isneglabel(label(lm)[1], lm)) === false
+                @test @inferred(isneglabel(label(lm)[2], lm)) === true
                 @test @inferred(isneglabel(:nix, lm)) === false
                 @test @inferred(isneglabel(1, lm)) === false
                 @test @inferred(isneglabel(2, lm)) === false
-                @test lm.labels == unique(targets)
-                @test @inferred(labels(lm)) == unique(targets)
-                @test eltype(@inferred(labels(lm))) <: eltype(targets)
-                @test @inferred(nlabels(lm)) === length(unique(targets))
+                @test lm.label == unique(targets)
+                @test @inferred(label(lm)) == unique(targets)
+                @test eltype(@inferred(label(lm))) <: eltype(targets)
+                @test @inferred(nlabel(lm)) === length(unique(targets))
             end
         end
         @testset "multiclass"  begin
@@ -370,10 +370,10 @@ end
                 @test_throws MethodError isneglabel(2,lm)
                 @test_throws MethodError poslabel(lm)
                 @test_throws MethodError neglabel(lm)
-                @test lm.labels == unique(targets)
-                @test @inferred(labels(lm)) == unique(targets)
-                @test eltype(@inferred(labels(lm))) <: eltype(targets)
-                @test @inferred(nlabels(lm)) === length(unique(targets))
+                @test lm.label == unique(targets)
+                @test @inferred(label(lm)) == unique(targets)
+                @test eltype(@inferred(label(lm))) <: eltype(targets)
+                @test @inferred(nlabel(lm)) === length(unique(targets))
             end
         end
     end

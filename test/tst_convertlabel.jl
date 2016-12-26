@@ -69,3 +69,117 @@ _dst_eltype(::Type{Bool}, default) = default
         end
     end
 end
+
+@testset "OneOfK with(out) ObsDim" begin
+    x = [1 0 1 0 0 1; 0 1 0 1 1 0]
+    xt = x'
+    for (dst_lm, dst_x) in (
+            (LabelModes.TrueFalse,[true,false,true,false,false,true]),
+            (LabelModes.TrueFalse(),[true,false,true,false,false,true]),
+            (LabelModes.ZeroOne,(_dst_eltype(eltype(x),Float64))[1,0,1,0,0,1]),
+            (LabelModes.ZeroOne(UInt8),UInt8[1,0,1,0,0,1]),
+            (LabelModes.ZeroOne(Int),Int[1,0,1,0,0,1]),
+            (LabelModes.ZeroOne(),[1.,0,1,0,0,1]),
+            (LabelModes.MarginBased,(_dst_eltype(eltype(x),Float64))[1,-1,1,-1,-1,1]),
+            (LabelModes.MarginBased(Float32),Float32[1,-1,1,-1,-1,1]),
+            (LabelModes.MarginBased(Int),Int[1,-1,1,-1,-1,1]),
+            (LabelModes.MarginBased(),[1,-1.,1,-1,-1,1]),
+            (LabelModes.Indices,(_dst_eltype(eltype(x),Int))[1,2,1,2,2,1]),
+            (LabelModes.Indices{UInt8},UInt8[1,2,1,2,2,1]),
+            (LabelModes.Indices(2),Int[1,2,1,2,2,1]),
+            (LabelModes.Indices(Float32,2),Float32[1,2,1,2,2,1]),
+            (LabelModes.OneVsRest(:yes),[:yes,:not_yes,:yes,:not_yes,:not_yes,:yes]),
+            (LabelModes.NativeLabels([:a,:b]),[:a,:b,:a,:b,:b,:a]),
+            ([:a,:b],[:a,:b,:a,:b,:b,:a]),
+        )
+        @testset "$x -> ($dst_lm) $dst_x" begin
+            res = if typeof(dst_lm) <: DataType && (dst_lm <: LabelModes.Indices || dst_lm <: LabelModes.OneOfK)
+                convertlabel(dst_lm, x)
+            else
+                @inferred convertlabel(dst_lm, x)
+            end
+            @test typeof(res) <: typeof(dst_x)
+            @test res == dst_x
+
+            res = @inferred convertlabel(dst_lm, x, LabelModes.OneOfK(2))
+            @test typeof(res) <: typeof(dst_x)
+            @test res == dst_x
+
+            # positional obsdim
+            res = @inferred convertlabel(dst_lm, x, LabelModes.OneOfK(2), ObsDim.Constant(2))
+            @test typeof(res) <: typeof(dst_x)
+            @test res == dst_x
+            res = @inferred convertlabel(dst_lm, x, LabelModes.OneOfK(2), ObsDim.Last())
+            @test typeof(res) <: typeof(dst_x)
+            @test res == dst_x
+            res = @inferred convertlabel(dst_lm, xt, LabelModes.OneOfK(2), ObsDim.First())
+            @test typeof(res) <: typeof(dst_x)
+            @test res == dst_x
+
+            # kw obsdim
+            res = convertlabel(dst_lm, x, obsdim=2)
+            @test typeof(res) <: typeof(dst_x)
+            @test res == dst_x
+            res = convertlabel(dst_lm, x, LabelModes.OneOfK(2), obsdim=:last)
+            @test typeof(res) <: typeof(dst_x)
+            @test res == dst_x
+            res = convertlabel(dst_lm, xt, obsdim=1)
+            @test typeof(res) <: typeof(dst_x)
+            @test res == dst_x
+            res = convertlabel(dst_lm, xt, LabelModes.OneOfK(2), obsdim=1)
+            @test typeof(res) <: typeof(dst_x)
+            @test res == dst_x
+        end
+    end
+    for (src_lm, src_x) in (
+            (LabelModes.TrueFalse(),[true,false,true,false,false,true]),
+            (LabelModes.ZeroOne(UInt8),UInt8[1,0,1,0,0,1]),
+            (LabelModes.ZeroOne(Int),Int[1,0,1,0,0,1]),
+            (LabelModes.ZeroOne(),[1.,0,1,0,0,1]),
+            (LabelModes.MarginBased(Float32),Float32[1,-1,1,-1,-1,1]),
+            (LabelModes.MarginBased(Int),Int[1,-1,1,-1,-1,1]),
+            (LabelModes.MarginBased(),[1,-1.,1,-1,-1,1]),
+            (LabelModes.Indices(2),Int[1,2,1,2,2,1]),
+            (LabelModes.Indices(Float32,2),Float32[1,2,1,2,2,1]),
+            (LabelModes.OneVsRest(:yes),[:yes,:not_yes,:yes,:not_yes,:not_yes,:yes]),
+            (LabelModes.NativeLabels([:a,:b]),[:a,:b,:a,:b,:b,:a]),
+        )
+        for (dst_lm, dst_x) in (
+                (LabelModes.OneOfK,Array{(_dst_eltype(eltype(src_x),Int))}(x)),
+                (LabelModes.OneOfK{Float32},Array{Float32}(x)),
+                (LabelModes.OneOfK(Bool,2),Array{Bool}(x)),
+             )
+            @testset "($src_lm) $src_x -> ($dst_lm) $dst_x" begin
+                res = @inferred convertlabel(dst_lm, src_x, src_lm)
+                @test typeof(res) <: typeof(dst_x)
+                @test res == dst_x
+
+                # positional obsdim
+                res = @inferred convertlabel(dst_lm, src_x, src_lm, ObsDim.Constant(2))
+                @test typeof(res) <: typeof(dst_x)
+                @test res == dst_x
+                res = @inferred convertlabel(dst_lm, src_x, src_lm, ObsDim.Last())
+                @test typeof(res) <: typeof(dst_x)
+                @test res == dst_x
+                res = @inferred convertlabel(dst_lm, src_x, src_lm, ObsDim.First())
+                @test typeof(res) <: typeof(dst_x')
+                @test res == dst_x'
+
+                # kw obsdim
+                res = convertlabel(dst_lm, src_x, obsdim=:last)
+                @test typeof(res) <: typeof(dst_x)
+                @test res == dst_x
+                res = convertlabel(dst_lm, src_x, src_lm, obsdim=:last)
+                @test typeof(res) <: typeof(dst_x)
+                @test res == dst_x
+                res = convertlabel(dst_lm, src_x, obsdim=1)
+                @test typeof(res) <: typeof(dst_x')
+                @test res == dst_x'
+                res = convertlabel(dst_lm, src_x, src_lm, obsdim=1)
+                @test typeof(res) <: typeof(dst_x')
+                @test res == dst_x'
+            end
+        end
+    end
+end
+
