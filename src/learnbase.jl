@@ -21,5 +21,5 @@ function isneglabel end
 function labeltype end
 
 function classify end
-function convertlabels end
+function convertlabel end
 

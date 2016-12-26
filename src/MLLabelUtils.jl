@@ -15,7 +15,7 @@ export
     ObsDim,
     classify,
 
-    convertlabels,
+    convertlabel,
 
     LabelModes,
     labelmode
@@ -23,7 +23,7 @@ export
 include("learnbase.jl")
 include("labelmode.jl")
 include("classify.jl")
-include("convertlabels.jl")
+include("convertlabel.jl")
 
 end # module
 

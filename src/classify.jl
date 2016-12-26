@@ -8,10 +8,6 @@ function classify{T<:Number}(value::T, ::Type{LabelModes.ZeroOne})
     classify(value, 0.5)
 end
 
-function classify{T<:Number,R}(value::T, ::Type{LabelModes.ZeroOne{R}})
-    R(classify(value, 0.5))
-end
-
 function classify{T<:Number,R}(value::T, lm::LabelModes.ZeroOne{R})
     R(classify(value, lm.cutoff))
 end
@@ -22,10 +18,6 @@ _sign{T}(value::T)::T = signbit(value) ? -one(T) : one(T)
 
 function classify{T<:Number}(value::T, ::Type{LabelModes.MarginBased})
     _sign(value)
-end
-
-function classify{T<:Number,R}(value::T, ::Type{LabelModes.MarginBased{R}})
-    R(_sign(value))
 end
 
 function classify{T<:Number,R}(value::T, lm::LabelModes.MarginBased{R})
@@ -42,9 +34,6 @@ for KIND in (:(LabelModes.MarginBased), :(LabelModes.ZeroOne))
     @eval begin
         function classify{T}(values::AbstractVector{T}, ::Type{($KIND)})
             classify.(values, ($KIND))::Vector{T}
-        end
-        function classify{T,R}(values::AbstractVector{T}, ::Type{($KIND){R}})
-            classify.(values, ($KIND){R})::Vector{labeltype(($KIND)(R))}
         end
         function classify{T,L<:($KIND)}(values::AbstractVector{T}, lm::L)
             classify.(values, lm)::Vector{labeltype(L)}
