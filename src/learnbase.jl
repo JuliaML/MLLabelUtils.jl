@@ -33,6 +33,7 @@ function label2ind end
 function poslabel end
 function neglabel end
 function labelenc end
+function islabelenc end
 function isposlabel end
 function isneglabel end
 function labeltype end

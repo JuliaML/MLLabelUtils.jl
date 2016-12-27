@@ -25,7 +25,8 @@ export
 #    convertlabel!,
 
     LabelEnc,
-    labelenc
+    labelenc,
+    islabelenc
 
 include("learnbase.jl")
 include("labelencoding.jl")

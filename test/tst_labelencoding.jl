@@ -413,3 +413,81 @@ end
     end
 end
 
+@testset "islabelenc" begin
+    for (lm, x, res) in (
+            (LabelEnc.TrueFalse,[true,false,true,false,false,true],true),
+            (LabelEnc.TrueFalse(),[true,false,true,false,false,true],true),
+            (LabelEnc.TrueFalse(),Int32[1,0,1,0,0,1],false),
+            (LabelEnc.ZeroOne,Int32[1,0,1,0,0,1],true),
+            (LabelEnc.ZeroOne,Int64[1,0,1,0,0,1],true),
+            (LabelEnc.ZeroOne{Int64},Int64[1,0,1,0,0,1],true),
+            (LabelEnc.ZeroOne{Int32},Int64[1,0,1,0,0,1],false),
+            (LabelEnc.ZeroOne,Float32[1,0,1,0,0,1],true),
+            (LabelEnc.ZeroOne(),Float32[1,0,1,0,0,1],false),
+            (LabelEnc.ZeroOne(),Float64[1,0,1,0,0,1],true),
+            (LabelEnc.ZeroOne,[true,false,true,false,false,true],true),
+            (LabelEnc.ZeroOne,[1,-1,1,-1,-1,1],false),
+            (LabelEnc.ZeroOne,[1,0,1,2,0,1],false),
+            (LabelEnc.MarginBased,Int32[1,-1,1,-1,-1,1],true),
+            (LabelEnc.MarginBased,Int64[1,-1,1,-1,-1,1],true),
+            (LabelEnc.MarginBased,Float32[1,-1,1,-1,-1,1],true),
+            (LabelEnc.MarginBased{Float32},Float32[1,-1,1,-1,-1,1],true),
+            (LabelEnc.MarginBased{Float64},Float32[1,-1,1,-1,-1,1],false),
+            (LabelEnc.MarginBased(),Float32[1,-1,1,-1,-1,1],false),
+            (LabelEnc.MarginBased(Float32),Float32[1,-1,1,-1,-1,1],true),
+            (LabelEnc.MarginBased(),Float64[1,-1,1,-1,-1,1],true),
+            (LabelEnc.MarginBased,[1,-1,1,0,-1,1],false),
+            (LabelEnc.MarginBased,[1,0,1,0,0,1],false),
+            (LabelEnc.MarginBased,[true,false,true,false,false,true],false),
+            (LabelEnc.Indices(2),Int[1,2,1,2,2,1],true),
+            (LabelEnc.Indices(2),Int[1,2,1,3,2,1],false),
+            (LabelEnc.Indices(3),Int[1,2,1,3,2,1],true),
+            (LabelEnc.Indices(2),Int[1,1,1,0,1,1],false),
+            (LabelEnc.Indices,Int[1,1,1,0,1,1],false),
+            (LabelEnc.Indices{Int},Float64[1,2,1,3,2,1],false),
+            (LabelEnc.Indices{Float64},Float64[1,2,1,3,2,1],true),
+            (LabelEnc.Indices,Float64[1,2,1,3,2,1],true),
+            (LabelEnc.Indices,Float64[1,2,1,2,2,1],true),
+            (LabelEnc.Indices(2),Float64[1,2,1,2,2,1],false),
+            (LabelEnc.OneVsRest(:yes),[:yes,:no,:yes,:maybe,:no,:yes],true),
+            (LabelEnc.OneVsRest(:ye),[:yes,:no,:yes,:maybe,:no,:yes],false),
+            (LabelEnc.OneVsRest(:ye),[1,2,1,2,2,1],false),
+            (LabelEnc.NativeLabels([:a,:b]),[:a,:b,:a,:b,:b,:a],true),
+            (LabelEnc.NativeLabels([:a,:b]),[:a,:c,:a,:b,:b,:a],false),
+            (LabelEnc.OneOfK,[1 0 1 0 0 1; 0 1 0 1 1 1],false),
+            (LabelEnc.OneOfK{Float64},[1 0 1 0 0 1; 0 1 0 1 1 0],false),
+            (LabelEnc.OneOfK(Int,3),[1 0 1 0 0 1; 0 1 0 1 1 0],false),
+            (LabelEnc.OneOfK,[1 0 1 0 0 .1; 0 1 0 1 1 0],false),
+        )
+        # check is the format is correctly recognized
+        @testset "$lm $x -> $res" begin
+            @test @inferred(islabelenc(x, lm)) == res
+        end
+    end
+end
+
+@testset "islabelenc OneOfK" begin
+    x2 = [1 0 1 0 0 1; 0 1 0 1 1 0]
+    x3 = [1 0 0 0 0 1; 0 1 0 1 0 0; 0 0 1 0 1 0]
+    for (dst_lm, dst_x) in (
+            (LabelEnc.OneOfK,Array{Int32}(x3)),
+            (LabelEnc.OneOfK{Float32},Array{Float32}(x3)),
+            (LabelEnc.OneOfK(Bool,3),Array{Bool}(x3)),
+            (LabelEnc.OneOfK,Array{Bool}(x2)),
+            (LabelEnc.OneOfK{Float32},Array{Float32}(x2)),
+            (LabelEnc.OneOfK(UInt8,2),Array{UInt8}(x2)),
+        )
+        # check is the format is correctly recognized
+        @test @inferred(islabelenc(dst_x, dst_lm)) == true
+        @test @inferred(islabelenc(dst_x', dst_lm)) == false
+        @test @inferred(islabelenc(dst_x, dst_lm, obsdim = 2)) == true
+        @test @inferred(islabelenc(dst_x', dst_lm, obsdim = 1)) == true
+        @test @inferred(islabelenc(dst_x, dst_lm, ObsDim.Last())) == true
+        @test @inferred(islabelenc(dst_x', dst_lm, ObsDim.First())) == true
+        @test @inferred(islabelenc(dst_x', dst_lm, obsdim = 2)) == false
+        @test @inferred(islabelenc(dst_x, dst_lm, obsdim = 1)) == false
+        @test @inferred(islabelenc(dst_x', dst_lm, ObsDim.Last())) == false
+        @test @inferred(islabelenc(dst_x, dst_lm, ObsDim.First())) == false
+    end
+end
+

@@ -159,6 +159,94 @@ isneglabel{T}(value::Number, lm::LabelEnc.OneOfK{T,2})   = value == 2
 isneglabel{R<:Number,T}(value::AbstractVector{R}, lm::LabelEnc.OneOfK{T,2}) = indmax(value) == 2
 isneglabel{T}(value, lm::LabelEnc.NativeLabels{T,2})     = value == neglabel(lm)
 
+# Check if the encoding is approriate
+islabelenc(targets::AbstractArray, args...) = false
+islabelenc{T<:Union{Number,Bool}}(targets::AbstractVector{T}, ::LabelEnc.FuzzyBinary) = true
+islabelenc{T<:Union{Number,Bool}}(targets::AbstractVector{T}, ::Type{LabelEnc.FuzzyBinary}) = true
+islabelenc{T<:Union{Number,Bool}}(targets::AbstractVector{T}, ::LabelEnc.ZeroOne{T})       = all(x == 0 || x == 1 for x in targets)
+islabelenc{T<:Union{Number,Bool}}(targets::AbstractVector{T}, ::Type{LabelEnc.ZeroOne{T}}) = all(x == 0 || x == 1 for x in targets)
+islabelenc{T<:Union{Number,Bool}}(targets::AbstractVector{T}, ::Type{LabelEnc.ZeroOne})    = all(x == 0 || x == 1 for x in targets)
+islabelenc{T<:Number}(targets::AbstractVector{T}, ::LabelEnc.MarginBased{T})       = all(x == -1 || x == 1 for x in targets)
+islabelenc{T<:Number}(targets::AbstractVector{T}, ::Type{LabelEnc.MarginBased{T}}) = all(x == -1 || x == 1 for x in targets)
+islabelenc{T<:Number}(targets::AbstractVector{T}, ::Type{LabelEnc.MarginBased})    = all(x == -1 || x == 1 for x in targets)
+islabelenc(targets::AbstractVector{Bool}, ::LabelEnc.TrueFalse) = true
+islabelenc(targets::AbstractVector{Bool}, ::Type{LabelEnc.TrueFalse}) = true
+islabelenc{T}(targets::AbstractVector{T}, lm::LabelEnc.OneVsRest{T}) = any(x == lm.poslabel for x in targets)
+islabelenc{T<:Number,K}(targets::AbstractVector{T}, ::LabelEnc.Indices{T,K})   = all(0 < x <= K && isinteger(x) for x in targets)
+islabelenc{T<:Number}(targets::AbstractVector{T}, ::Type{LabelEnc.Indices{T}}) = all(0 < x && isinteger(x) for x in targets)
+islabelenc{T<:Number}(targets::AbstractVector{T}, ::Type{LabelEnc.Indices})    = all(0 < x && isinteger(x) for x in targets)
+islabelenc{T}(targets::AbstractVector{T}, lm::LabelEnc.NativeLabels{T}) = all(x ∈ lm.label for x in targets)
+
+function islabelenc{T<:Union{Bool,Number}}(targets::AbstractMatrix{T}, lm; obsdim = LearnBase.default_obsdim(targets))
+    islabelenc(targets, lm, LearnBase.obs_dim(obsdim))
+end
+
+function islabelenc{T<:Union{Bool,Number}}(targets::AbstractMatrix{T}, lm::LabelEnc.OneOfK, obsdim)
+    islabelenc(targets, typeof(lm), obsdim)
+end
+
+function islabelenc{T<:Union{Bool,Number}}(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T}}, obsdim)
+    islabelenc(targets, LabelEnc.OneOfK, obsdim)
+end
+
+function islabelenc{T<:Union{Bool,Number},K}(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T,K}}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
+    k, n = size(targets)
+    k != K ? false : islabelenc(targets, LabelEnc.OneOfK, ObsDim.Last())
+end
+
+function islabelenc{T<:Union{Bool,Number},K}(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T,K}}, ::ObsDim.First)
+    n, k = size(targets)
+    k != K ? false : islabelenc(targets, LabelEnc.OneOfK, ObsDim.First())
+end
+
+function islabelenc{T<:Union{Bool,Number}}(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
+    k, n = size(targets)
+    @inbounds for i in 1:n
+        found = false
+        for j in 1:k
+            tcur = targets[j,i]
+            if tcur == 1
+                if found
+                    return false
+                end
+                found = true
+            elseif tcur == 0
+                # this is fine
+            else
+                return false
+            end
+        end
+        if !found
+            return false
+        end
+    end
+    return true
+end
+
+function islabelenc{T<:Union{Bool,Number}}(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK}, ::ObsDim.First)
+    n, k = size(targets)
+    @inbounds for i in 1:n
+        found = false
+        for j in 1:k
+            tcur = targets[i,j]
+            if tcur == 1
+                if found
+                    return false
+                end
+                found = true
+            elseif tcur == 0
+                # this is fine
+            else
+                return false
+            end
+        end
+        if !found
+            return false
+        end
+    end
+    return true
+end
+
 # Automatic determination of label mode
 labelenc(target) = _ambiguous()
 labelenc(targets::AbstractVector{Bool}) = LabelEnc.TrueFalse()

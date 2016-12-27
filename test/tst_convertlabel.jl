@@ -48,6 +48,9 @@ _dst_eltype(::Type{Bool}, default) = default
                 (LabelEnc.OneOfK(Bool,2),Bool[1 0 1 0 0 1; 0 1 0 1 1 0]),
             )
             @testset "($src_lm) $src_x -> ($dst_lm) $dst_x" begin
+                if !(typeof(dst_lm) <: Vector)
+                    @test @inferred(islabelenc(dst_x, dst_lm)) == true
+                end
                 if !(typeof(src_lm)<:LabelEnc.FuzzyBinary) && !((typeof(src_lm) <: LabelEnc.OneVsRest)$(typeof(dst_lm) <: LabelEnc.OneVsRest))
                     res = if typeof(dst_lm) <: DataType || typeof(dst_lm) <: Array
                         convertlabel(dst_lm, src_x)
@@ -96,6 +99,9 @@ end
                 (LabelEnc.OneOfK(Bool,3),Bool[1 0 0 0 0 1; 0 1 0 1 0 0; 0 0 1 0 1 0]),
             )
             @testset "($src_lm) $src_x -> ($dst_lm) $dst_x" begin
+                if !(typeof(dst_lm) <: Vector)
+                    @test @inferred(islabelenc(dst_x, dst_lm)) == true
+                end
                 res = if typeof(dst_lm) <: DataType || typeof(dst_lm) <: Array
                     convertlabel(dst_lm, src_x)
                 else
