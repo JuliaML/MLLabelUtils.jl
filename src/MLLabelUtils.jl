@@ -22,11 +22,11 @@ export
 
     convertlabel,
 
-    LabelModes,
-    labelmode
+    LabelEnc,
+    labelenc
 
 include("learnbase.jl")
-include("labelmode.jl")
+include("labelencoding.jl")
 include("classify.jl")
 include("convertlabel.jl")
 
