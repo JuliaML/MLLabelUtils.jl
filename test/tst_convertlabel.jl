@@ -49,7 +49,11 @@ _dst_eltype(::Type{Bool}, default) = default
             )
             @testset "($src_lm) $src_x -> ($dst_lm) $dst_x" begin
                 if !(typeof(src_lm)<:LabelModes.FuzzyBinary) && !((typeof(src_lm) <: LabelModes.OneVsRest)$(typeof(dst_lm) <: LabelModes.OneVsRest))
-                    res = convertlabel(dst_lm, src_x)
+                    res = if typeof(dst_lm) <: DataType || typeof(dst_lm) <: Array
+                        convertlabel(dst_lm, src_x)
+                    else
+                        @inferred convertlabel(dst_lm, src_x)
+                    end
                     @test typeof(res) <: typeof(dst_x)
                     @test res == dst_x
                 end

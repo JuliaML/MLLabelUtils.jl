@@ -38,6 +38,14 @@ function convertlabel{L<:MLLabelUtils.LabelMode,T,S,K}(::Type{L}, values::Abstra
     convertlabel(_lm(L,T,Val{K}), values, src, args...)
 end
 
+function convertlabel{T,K,M}(dst::MLLabelUtils.LabelMode{T,K,M}, values::AbstractMatrix)
+    convertlabel(dst, values, labelmode(values))::Array{T,M}
+end
+
+function convertlabel{T,K,M}(dst::MLLabelUtils.LabelMode{T,K,M}, values::AbstractVector) # avoid method clash
+    convertlabel(dst, values, labelmode(values))::Array{T,M}
+end
+
 convertlabel(dst, values::AbstractArray) = convertlabel(dst, values, labelmode(values))
 
 ## OneVsRest

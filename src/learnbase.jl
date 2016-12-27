@@ -11,13 +11,16 @@ Base.getindex(lm::LabelMode, idx) = lm
 Base.size{T<:LabelMode}(::Type{T}) = ()
 Base.getindex{T<:LabelMode}(t::Type{T}, idx) = t
 
+nlabel{T<:BinaryLabelMode}(::Type{T}) = 2
 nlabel{T,K,M}(::Type{LabelMode{T,K,M}}) = Int(K)
-nlabel(::Type{Any}) = Any
+nlabel(::Type{Any}) = error("nlabel not defined for the given type")
 nlabel{T}(::Type{T}) = nlabel(supertype(T))
 nlabel{T,K}(::LabelMode{T,K}) = Int(K)
 
 label(itr) = unique(itr)
 
+labeltype{T}(::Type{MatrixLabelMode{T}}) = T
+labeltype{T}(::Type{VectorLabelMode{T}}) = T
 labeltype{T,K,M}(::Type{LabelMode{T,K,M}}) = T
 labeltype(::Type{Any}) = Any
 labeltype{T}(::Type{T}) = labeltype(supertype(T))

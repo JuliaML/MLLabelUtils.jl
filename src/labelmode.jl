@@ -104,7 +104,7 @@ label2ind(lbl::AbstractVector, lm::LabelModes.OneOfK) = indmax(lbl)
 # Query the label
 ind2label(i::Int, lm::MLLabelUtils.BinaryLabelMode) = i == 1 ? ind2label(Val{1},lm) : ind2label(Val{2},lm)
 ind2label{T}(i::Int, ::LabelModes.Indices{T}) = T(i)
-ind2label{T}(i::Int, ::LabelModes.OneOfK{T}) = Int(i)
+ind2label{T,K}(i::Int, ::LabelModes.OneOfK{T,K}) = (x = zeros(T,K); x[i] = one(T); x)
 ind2label{T}(i::Int, lm::LabelModes.NativeLabels{T}) = lm.label[i]
 
 ind2label(::Type{Val{1}}, ::LabelModes.TrueFalse) = true
@@ -116,13 +116,13 @@ ind2label{T}(::Type{Val{2}}, ::LabelModes.MarginBased{T}) = -one(T)
 ind2label(::Type{Val{1}}, ovr::LabelModes.OneVsRest) = ovr.poslabel
 ind2label(::Type{Val{2}}, ovr::LabelModes.OneVsRest) = ovr.neglabel
 ind2label{T,K}(::Type{Val{K}}, ::LabelModes.Indices{T}) = T(K)
-ind2label{T,K}(::Type{Val{K}}, ::LabelModes.OneOfK{T}) = Int(K)
+ind2label{T,I,K}(::Type{Val{I}}, ::LabelModes.OneOfK{T,K}) = (x = zeros(T,K); x[I] = one(T); x)
 ind2label{T,K}(::Type{Val{K}}, lm::LabelModes.NativeLabels{T}) = lm.label[K]
 
 poslabel(lm::LabelModes.BinaryLabelMode) = ind2label(Val{1}, lm)
 neglabel(lm::LabelModes.BinaryLabelMode) = ind2label(Val{2}, lm)
 
-label(lm::LabelModes.BinaryLabelMode) = [poslabel(lm), neglabel(lm)]
+label{T}(lm::LabelModes.BinaryLabelMode{T,1}) = [poslabel(lm), neglabel(lm)]
 label{T,K}(::LabelModes.Indices{T,K}) = collect(one(T):T(K))
 label{T,K}(::LabelModes.OneOfK{T,K})  = collect(1:K)
 label(lm::LabelModes.NativeLabels) = lm.label
@@ -139,8 +139,8 @@ isposlabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value > zero(T))
 isposlabel{T<:Number}(value::T, zo::LabelModes.ZeroOne)    = (value >= zo.cutoff)
 isposlabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) >= zero(T))
 isposlabel{T}(value::Number, lm::LabelModes.Indices{T,2})  = value == poslabel(lm)
-isposlabel{T}(value::Number, lm::LabelModes.OneOfK{T,2})   = value == poslabel(lm)
-isposlabel{R<:Number,T}(value::AbstractVector{R}, lm::LabelModes.OneOfK{T,2}) = indmax(value) == poslabel(lm)
+isposlabel{T}(value::Number, lm::LabelModes.OneOfK{T,2})   = value == 1
+isposlabel{R<:Number,T}(value::AbstractVector{R}, lm::LabelModes.OneOfK{T,2}) = indmax(value) == 1
 isposlabel{T}(value, lm::LabelModes.NativeLabels{T,2})     = value == poslabel(lm)
 
 # What it means to be a negative label
@@ -155,8 +155,8 @@ isneglabel{T<:Number}(value::T, ::LabelModes.FuzzyBinary)  = (value <= zero(T))
 isneglabel{T<:Number}(value::T, zo::LabelModes.ZeroOne)    = (value < zo.cutoff)
 isneglabel{T<:Number}(value::T, ::LabelModes.MarginBased)  = (sign(value) == -one(T))
 isneglabel{T}(value::Number, lm::LabelModes.Indices{T,2})  = value == neglabel(lm)
-isneglabel{T}(value::Number, lm::LabelModes.OneOfK{T,2})   = value == neglabel(lm)
-isneglabel{R<:Number,T}(value::AbstractVector{R}, lm::LabelModes.OneOfK{T,2}) = indmax(value) == neglabel(lm)
+isneglabel{T}(value::Number, lm::LabelModes.OneOfK{T,2})   = value == 2
+isneglabel{R<:Number,T}(value::AbstractVector{R}, lm::LabelModes.OneOfK{T,2}) = indmax(value) == 2
 isneglabel{T}(value, lm::LabelModes.NativeLabels{T,2})     = value == neglabel(lm)
 
 # Automatic determination of label mode

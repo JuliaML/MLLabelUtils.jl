@@ -6,17 +6,24 @@
 
     @testset "FuzzyBinary" begin
         @test LabelModes.FuzzyBinary <: MLLabelUtils.BinaryLabelMode
-        @test_throws MethodError label(LabelModes.FuzzyBinary())
         @test @inferred(nlabel(LabelModes.FuzzyBinary())) === 2
+        @test @inferred(labeltype(LabelModes.FuzzyBinary)) <: Any
+        @test_throws MethodError label(LabelModes.FuzzyBinary())
     end
 
     @testset "TrueFalse" begin
         @test LabelModes.TrueFalse <: MLLabelUtils.BinaryLabelMode
+        @test @inferred(nlabel(LabelModes.TrueFalse)) === 2
+        @test @inferred(labeltype(LabelModes.TrueFalse)) <: Bool
         @test typeof(@inferred(LabelModes.TrueFalse())) <: LabelModes.TrueFalse
     end
 
     @testset "ZeroOne" begin
         @test LabelModes.ZeroOne <: MLLabelUtils.BinaryLabelMode
+        @test @inferred(nlabel(LabelModes.ZeroOne)) === 2
+        @test @inferred(nlabel(LabelModes.ZeroOne{Float32})) === 2
+        @test @inferred(labeltype(LabelModes.ZeroOne)) == Any
+        @test @inferred(labeltype(LabelModes.ZeroOne{Float32})) <: Float32
         @test typeof(@inferred(LabelModes.ZeroOne{Int,Float32}())) <: LabelModes.ZeroOne{Int,Float32}
         @test typeof(@inferred(LabelModes.ZeroOne())) <: LabelModes.ZeroOne{Float64,Float64}
         @test typeof(@inferred(LabelModes.ZeroOne(0))) <: LabelModes.ZeroOne{Int,Int}
@@ -38,6 +45,10 @@
 
     @testset "MarginBased" begin
         @test LabelModes.MarginBased <: MLLabelUtils.BinaryLabelMode
+        @test @inferred(nlabel(LabelModes.MarginBased)) === 2
+        @test @inferred(nlabel(LabelModes.MarginBased{Float32})) === 2
+        @test @inferred(labeltype(LabelModes.MarginBased)) == Any
+        @test @inferred(labeltype(LabelModes.MarginBased{Float32})) <: Float32
         @test typeof(@inferred(LabelModes.MarginBased())) <: LabelModes.MarginBased{Float64}
         @test typeof(@inferred(LabelModes.MarginBased(Int))) <: LabelModes.MarginBased{Int}
         @test typeof(@inferred(LabelModes.MarginBased(Float64))) <: LabelModes.MarginBased{Float64}
@@ -46,6 +57,10 @@
 
     @testset "OneVsRest" begin
         @test LabelModes.OneVsRest <: MLLabelUtils.BinaryLabelMode
+        @test @inferred(nlabel(LabelModes.OneVsRest)) === 2
+        @test @inferred(nlabel(LabelModes.OneVsRest{Float32})) === 2
+        @test @inferred(labeltype(LabelModes.OneVsRest)) == Any
+        @test @inferred(labeltype(LabelModes.OneVsRest{Symbol})) <: Symbol
         @test_throws MethodError LabelModes.OneVsRest([1,2])
         @test_throws MethodError LabelModes.OneVsRest(:yes, nothing)
         @test_throws MethodError LabelModes.OneVsRest(:yes, "no")
@@ -62,6 +77,11 @@
 
     @testset "Indices" begin
         @test LabelModes.Indices <: MLLabelUtils.LabelMode
+        @test_throws ErrorException nlabel(LabelModes.Indices)
+        @test @inferred(nlabel(LabelModes.Indices{Float32,4})) === 4
+        @test @inferred(labeltype(LabelModes.Indices)) == Any
+        @test @inferred(labeltype(LabelModes.Indices{UInt8})) <: UInt8
+        @test @inferred(labeltype(LabelModes.Indices{UInt8,3})) <: UInt8
         @test_throws TypeError LabelModes.Indices(Val{3.})
         @test typeof(@inferred(LabelModes.Indices(Val{3}))) <: LabelModes.Indices{Int,3}
         @test typeof(@inferred(LabelModes.Indices(Val{2}))) <: LabelModes.Indices{Int,2}
@@ -75,6 +95,11 @@
 
     @testset "OneOfK" begin
         @test LabelModes.OneOfK <: MLLabelUtils.LabelMode
+        @test_throws ErrorException nlabel(LabelModes.OneOfK)
+        @test @inferred(nlabel(LabelModes.OneOfK{Float32,4})) === 4
+        @test @inferred(labeltype(LabelModes.OneOfK)) == Any
+        @test @inferred(labeltype(LabelModes.OneOfK{UInt8})) <: UInt8
+        @test @inferred(labeltype(LabelModes.OneOfK{UInt8,3})) <: UInt8
         @test_throws TypeError LabelModes.OneOfK(Val{3.})
         @test typeof(@inferred(LabelModes.OneOfK(Val{3}))) <: LabelModes.OneOfK{Int,3}
         @test typeof(@inferred(LabelModes.OneOfK(Val{2}))) <: LabelModes.OneOfK{Int,2}
@@ -88,6 +113,11 @@
 
     @testset "NativeLabels" begin
         @test LabelModes.NativeLabels <: MLLabelUtils.LabelMode
+        @test_throws ErrorException nlabel(LabelModes.NativeLabels)
+        @test @inferred(nlabel(LabelModes.NativeLabels{Float32,4})) === 4
+        @test @inferred(labeltype(LabelModes.NativeLabels)) == Any
+        @test @inferred(labeltype(LabelModes.NativeLabels{String})) <: String
+        @test @inferred(labeltype(LabelModes.NativeLabels{UInt8,3})) <: UInt8
         @test_throws TypeError LabelModes.NativeLabels{Int,2.}([1,2])
         @test_throws AssertionError LabelModes.NativeLabels{Int,3}([1,2])
         @test_throws AssertionError LabelModes.NativeLabels([1,2],Val{3})
@@ -294,8 +324,8 @@ end
                 @test @inferred(isneglabel(1, lm)) === false
                 @test @inferred(isneglabel(2, lm)) === true
                 @test @inferred(nlabel(lm))  === 2
-                @test @inferred(poslabel(lm)) === 1
-                @test @inferred(neglabel(lm)) === 2
+                @test @inferred(poslabel(lm)) == [1, 0]
+                @test @inferred(neglabel(lm)) == [0, 1]
                 @test @inferred(label(lm)) == [1, 2]
                 @test eltype(@inferred(label(lm))) <: Int
                 @test @inferred(isposlabel([.6,.4], lm)) === true
@@ -310,6 +340,7 @@ end
                 end
             end
             @testset "multiclass T = $T" begin
+                @test @inferred(ind2label(4, LabelModes.OneOfK(5))) == [0, 0, 0, 1, 0]
                 for K in (3,5)
                     lm = LabelModes.OneOfK(T,K)
                     @test typeof(lm) <: LabelModes.OneOfK{T,K}
