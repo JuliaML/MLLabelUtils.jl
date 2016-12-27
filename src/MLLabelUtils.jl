@@ -4,8 +4,13 @@ using LearnBase
 
 export
 
-    labels,
-    nlabels,
+    ind2label,
+    label2ind,
+
+    labeltype,
+
+    label,
+    nlabel,
 
     poslabel,
     neglabel,
@@ -15,12 +20,15 @@ export
     ObsDim,
     classify,
 
-    LabelModes,
-    labelmode
+    convertlabel,
+
+    LabelEnc,
+    labelenc
 
 include("learnbase.jl")
-include("labelmode.jl")
+include("labelencoding.jl")
 include("classify.jl")
+include("convertlabel.jl")
 
 end # module
 
