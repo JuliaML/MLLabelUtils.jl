@@ -56,26 +56,22 @@ end
 
 ## NativeLabels
 
-function convertlabel(dst_lbl::AbstractVector, values, src::LabelEncoding, args...)
-    convertlabel(LabelEnc.NativeLabels(dst_lbl), values, src, args...)
-end
-
 function convertlabel(dst, values, src_lbl::AbstractVector, args...)
     convertlabel(dst, values, LabelEnc.NativeLabels(src_lbl), args...)
 end
 
 # NativeLabels binary inference helper
 
-function convertlabel{T}(dst_lbl::AbstractVector{T}, values, src::BinaryLabelEncoding, args...)
-    convertlabel(LabelEnc.NativeLabels{T,2}(dst_lbl), values, src, args...)
+function convertlabel{T,S,K}(dst_lbl::AbstractVector{T}, values, src::LabelEncoding{S,K}, args...)
+    convertlabel(LabelEnc.NativeLabels{T,K}(dst_lbl), values, src, args...)
+end
+
+function convertlabel{S,K,T}(dst::LabelEncoding{S,K}, values, src_lbl::AbstractVector{T}, args...)
+    convertlabel(dst, values, LabelEnc.NativeLabels{T,K}(src_lbl), args...)
 end
 
 function convertlabel{L<:BinaryLabelEncoding,T}(::Type{L}, values, src_lbl::AbstractVector{T}, args...)
     convertlabel(L, values, LabelEnc.NativeLabels{T,2}(src_lbl), args...)
-end
-
-function convertlabel{T}(dst::BinaryLabelEncoding, values, src_lbl::AbstractVector{T}, args...)
-    convertlabel(dst, values, LabelEnc.NativeLabels{T,2}(src_lbl), args...)
 end
 
 ## OneOfK obsdim kw specified

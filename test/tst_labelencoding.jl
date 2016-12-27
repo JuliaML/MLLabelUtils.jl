@@ -340,7 +340,10 @@ end
                 end
             end
             @testset "multiclass T = $T" begin
+                @test ind2label.([4,1], LabelEnc.OneOfK(5)) == [[0, 0, 0, 1, 0],[1, 0, 0, 0 ,0]]
                 @test @inferred(ind2label(4, LabelEnc.OneOfK(5))) == [0, 0, 0, 1, 0]
+                @test @inferred(label2ind([0,0,0,1,0], LabelEnc.OneOfK(5))) === 4
+                @test @inferred(label2ind(4., LabelEnc.OneOfK(Float64,5))) === 4
                 for K in (3,5)
                     lm = LabelEnc.OneOfK(T,K)
                     @test typeof(lm) <: LabelEnc.OneOfK{T,K}
