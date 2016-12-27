@@ -17,6 +17,8 @@ nlabel(::Type{Any}) = error("nlabel not defined for the given type")
 nlabel{T}(::Type{T}) = nlabel(supertype(T))
 nlabel{T,K}(::LabelEncoding{T,K}) = Int(K)
 
+nlabel(itr) = length(unique(itr))
+
 label(itr) = unique(itr)
 
 labeltype{T}(::Type{MatrixLabelEncoding{T}}) = T
@@ -36,5 +38,8 @@ function isneglabel end
 function labeltype end
 
 function classify end
+function classify! end
+
 function convertlabel end
+function convertlabel! end
 

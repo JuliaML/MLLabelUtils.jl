@@ -20,6 +20,12 @@
         @test eltype(classify.(T[0.4,0.6], LabelEnc.ZeroOne)) <: T
         @test eltype(classify(T[0.4,0.6], 0.5)) <: T
         @test eltype(classify(T[0.4,0.6], LabelEnc.ZeroOne)) <: T
+        buffer = zeros(2)
+        @test @inferred(classify!(buffer, [0.4,0.6], 0.5)) == [0,1]
+        @test buffer == [0,1]
+        buffer = zeros(2)
+        @test @inferred(classify!(buffer, [0.4,0.6], LabelEnc.ZeroOne)) == [0,1]
+        @test buffer == [0,1]
     end
     for T in (Float16, Float32, Float64, UInt8, Int32, Int64)
         @test @inferred(classify(0.2f0, LabelEnc.ZeroOne(T,0.3))) === zero(T)
@@ -34,6 +40,9 @@
         @test eltype(classify([0.4,0.6], LabelEnc.ZeroOne(T))) <: T
         @test eltype(classify.([0.4,0.6], LabelEnc.ZeroOne(T))) <: T
         @test eltype(classify.([0.2,0.4,0.6], LabelEnc.ZeroOne(T,0.3))) <: T
+        buffer = zeros(2)
+        @test @inferred(classify!(buffer, [0.4,0.6], LabelEnc.ZeroOne(T))) == [0,1]
+        @test buffer == [0,1]
     end
 end
 
@@ -48,6 +57,9 @@ end
         @test @inferred(classify(T[0,-.1,0.2,3,-4], LabelEnc.MarginBased)) == [1,-1,1,1,-1]
         @test eltype(classify.(T[0,-.1,0.2,3,-4], LabelEnc.MarginBased)) <: T
         @test eltype(classify(T[0,-.1,0.2,3,-4], LabelEnc.MarginBased)) <: T
+        buffer = zeros(5)
+        @test @inferred(classify!(buffer, T[0,-.1,0.2,3,-4], LabelEnc.MarginBased)) == [1,-1,1,1,-1]
+        @test buffer == [1,-1,1,1,-1]
     end
     for T in (Int16, Int32, Int64)
         @test @inferred(classify(T(12), LabelEnc.MarginBased)) === one(T)
@@ -100,6 +112,12 @@ end
         @test eltype(classify(A, LabelEnc.OneOfK(Val{3}))) <: Int
         @test eltype(classify(A, LabelEnc.OneOfK(Val{3}), ObsDim.Last())) <: Int
         @test eltype(classify(A, LabelEnc.OneOfK(Val{3}), obsdim=2)) <: Int
+        buffer = zeros(7)
+        @test @inferred(classify!(buffer, A, LabelEnc.OneOfK(3), ObsDim.Last())) == [1,3,2,1,2,3,2]
+        @test buffer == [1,3,2,1,2,3,2]
+        buffer = zeros(7)
+        @test @inferred(classify!(buffer, A, LabelEnc.OneOfK(3); obsdim=:last)) == [1,3,2,1,2,3,2]
+        @test buffer == [1,3,2,1,2,3,2]
         At = A'
         @test @inferred(classify(At, LabelEnc.OneOfK, ObsDim.First())) == [1,3,2,1,2,3,2]
         @test @inferred(classify(At, LabelEnc.OneOfK, obsdim=1)) == [1,3,2,1,2,3,2]
@@ -110,6 +128,12 @@ end
         @test eltype(classify(At, LabelEnc.OneOfK(Val{3}))) <: Int
         @test eltype(classify(At, LabelEnc.OneOfK(Val{3}), ObsDim.First())) <: Int
         @test eltype(classify(At, LabelEnc.OneOfK(Val{3}), obsdim=1)) <: Int
+        buffer = zeros(7)
+        @test @inferred(classify!(buffer, At, LabelEnc.OneOfK(3), ObsDim.First())) == [1,3,2,1,2,3,2]
+        @test buffer == [1,3,2,1,2,3,2]
+        buffer = zeros(7)
+        @test @inferred(classify!(buffer, At, LabelEnc.OneOfK, obsdim=1)) == [1,3,2,1,2,3,2]
+        @test buffer == [1,3,2,1,2,3,2]
     end
 end
 

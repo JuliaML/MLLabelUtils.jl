@@ -26,6 +26,11 @@ end
 
 ## broadcast
 
+function classify!(buffer::AbstractVector, values::AbstractVector, lm)
+    buffer .= classify.(values, lm)
+    buffer
+end
+
 function classify{T}(values::AbstractVector{T}, cutoff::Number)
     classify.(values, cutoff)::Vector{T}
 end
@@ -51,17 +56,31 @@ function classify(values::AbstractVector, lm::LabelEnc.OneOfK)
     classify(values, typeof(lm))
 end
 
-function classify{T<:LabelEnc.OneOfK}(values::AbstractMatrix, ::Type{T}; obsdim = LearnBase.default_obsdim(values))
-    classify(values, T, LearnBase.obs_dim(obsdim))
+function classify!{T<:AbstractVector}(buffer::T, values::AbstractMatrix, lm; obsdim = LearnBase.default_obsdim(values))
+    classify!(buffer, values, lm, LearnBase.obs_dim(obsdim))::T
 end
 
-function classify(values::AbstractMatrix, lm::LabelEnc.OneOfK; obsdim = LearnBase.default_obsdim(values))
-    classify(values, typeof(lm), LearnBase.obs_dim(obsdim))
+function classify(values::AbstractMatrix, lm; obsdim = LearnBase.default_obsdim(values))
+    classify(values, lm, LearnBase.obs_dim(obsdim))
 end
 
-function classify{R<:Number,T<:LabelEnc.OneOfK}(values::AbstractMatrix{R}, ::Type{T}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
+function classify!(buffer, values::AbstractMatrix, lm::LabelEnc.OneOfK, obsdim::LearnBase.ObsDimension)
+    classify!(buffer, values, typeof(lm), obsdim)
+end
+
+function classify(values::AbstractMatrix, lm::LabelEnc.OneOfK, obsdim::LearnBase.ObsDimension)
+    classify(values, typeof(lm), obsdim)
+end
+
+function classify{T<:LabelEnc.OneOfK}(values::AbstractMatrix, ::Type{T}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
     K, N = size(values)
-    res = Vector{Int}(N)
+    buffer = Vector{Int}(N)
+    classify!(buffer, values, T, ObsDim.Last())
+end
+
+function classify!{R<:Number,T<:LabelEnc.OneOfK}(buffer::AbstractVector, values::AbstractMatrix{R}, ::Type{T}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
+    K, N = size(values)
+    @assert length(buffer) == N
     @inbounds for n in 1:N
         imax = 0
         tmax = typemin(R)
@@ -72,28 +91,30 @@ function classify{R<:Number,T<:LabelEnc.OneOfK}(values::AbstractMatrix{R}, ::Typ
                 tmax = tcur
             end
         end
-        res[n] = imax
+        buffer[n] = imax
     end
-    res
+    buffer
 end
 
-function classify{R<:Number,T<:LabelEnc.OneOfK}(values::AbstractMatrix{R}, ::Type{T}, ::ObsDim.First)
+function classify{T<:LabelEnc.OneOfK}(values::AbstractMatrix, ::Type{T}, ::ObsDim.First)
+    N, K = size(values)
+    buffer = Vector{Int}(N)
+    classify!(buffer, values, T, ObsDim.First())
+end
+
+function classify!{R<:Number,T<:LabelEnc.OneOfK}(buffer::AbstractVector, values::AbstractMatrix{R}, ::Type{T}, ::ObsDim.First)
     N, K = size(values)
     tmax = fill(typemin(R),N)
-    res  = Vector{Int}(N)
+    @assert length(buffer) == N
     @inbounds for k in 1:K
         for n in 1:N
             tcur = values[n,k]
             if tcur > tmax[n]
                 tmax[n] = tcur
-                res[n] = k
+                buffer[n] = k
             end
         end
     end
-    res
-end
-
-function classify(values::AbstractMatrix, lm::LabelEnc.OneOfK, obsdim::LearnBase.ObsDimension)
-    classify(values, typeof(lm), obsdim)
+    buffer
 end
 

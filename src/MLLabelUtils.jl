@@ -19,8 +19,10 @@ export
 
     ObsDim,
     classify,
+    classify!,
 
     convertlabel,
+#    convertlabel!,
 
     LabelEnc,
     labelenc
