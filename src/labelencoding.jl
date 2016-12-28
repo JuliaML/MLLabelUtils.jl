@@ -6,17 +6,35 @@ module LabelEnc
     import ..MLLabelUtils.BinaryLabelEncoding
 
     """
-    TODO
+        LabelEnc.FuzzyBinary <: LabelEncoding{Any,2,1}
+
+    A vector-based binary label encoding without a specific labeltype.
+
+    Primarily used for fuzzy comparision of binary true targets
+    and predicted targets. It basically assumes that the encoding
+    is either `TrueFalse`, `ZeroOne`, or `MarginBased` by treating
+    all non-negative values as positive outputs.
     """
     immutable FuzzyBinary <: BinaryLabelEncoding{Any,1} end
 
     """
-    TODO
+        LabelEnc.TrueFalse <: LabelEncoding{Bool,2,1}
+
+    A vector-based binary label encoding with labeltype `Bool`.
+
+    Represents binary classification-labels as boolean, in which `true`
+    represents the positive class, and `false` the negative class.
     """
     immutable TrueFalse <: BinaryLabelEncoding{Bool,1} end
 
     """
-    TODO
+        LabelEnc.ZeroOne{T<:Number} <: LabelEncoding{T,2,1}
+
+    A vector-based binary label encoding with a numeric labeltype.
+
+    Represents binary classification-labels as numbers, in which
+    `one(T)` represents the positive class, and `zero(T)` the
+    negative class.
     """
     immutable ZeroOne{T<:Number,R<:Number} <: BinaryLabelEncoding{T,1}
         cutoff::R
@@ -29,13 +47,31 @@ module LabelEnc
     ZeroOne{R<:Number}(cutoff::R) = ZeroOne(R, cutoff)
 
     """
-    TODO
+        LabelEnc.MarginBased{T<:Number} <: LabelEncoding{T,2,1}
+
+    A vector-based binary label encoding with a numeric labeltype.
+
+    Represents binary classification-labels as numbers, in which
+    `one(T)` represents the positive class, and `-one(T)` the
+    negative class.
     """
     immutable MarginBased{T<:Number} <: BinaryLabelEncoding{T,1} end
     MarginBased{T<:Number}(::Type{T} = Float64) = MarginBased{T}()
 
     """
-    TODO
+        LabelEnc.OneVsRest{T} <: LabelEncoding{T,2,1}
+
+    A vector-based binary label encoding with a arbitrary labeltype.
+
+    A special label-encoding in that it only uses a positive
+    label to determine which class some element belongs to.
+    If some value matches the specified positive label, then it is
+    considered positive, otherwise it is considered negative.
+
+    That said `OneVsRest` requires a negative label to be specified
+    in order to be able to denote it somehow. Note, however,
+    that the specified negative label is purely for asthetic
+    reasons and is not used to determine class membership
     """
     immutable OneVsRest{T} <: BinaryLabelEncoding{T,1}
         poslabel::T
@@ -47,7 +83,14 @@ module LabelEnc
     OneVsRest{T<:Number}(poslabel::T) = OneVsRest{T}(poslabel, poslabel == 0 ? poslabel+one(T) : zero(T))
 
     """
-    TODO
+        LabelEnc.Indices{T,K<:Number} <: LabelEncoding{T,K,1}
+
+    A vector-based multi-label encoding with a numeric labeltype.
+
+    Represents the class-labels as indices starting from `T(1)` up to
+    (including) `T(K)`.
+    In a binary setting `T(1)` corresponds to te positive class and
+    `T(2)` corresponds to the negative class.
     """
     immutable Indices{T<:Number,K} <: LabelEncoding{T,K,1}
         function Indices()
@@ -61,7 +104,13 @@ module LabelEnc
     Indices(K::Number) = Indices(Int,Val{Int(K)})
 
     """
-    TODO
+        LabelEnc.OneOfK{T,K<:Number} <: LabelEncoding{T,K,2}
+
+    A matrix-based multi-label encoding with a numeric labeltype.
+
+    Represents the class labels in a one-hot encoding scheme.
+    That means a matrix in which for every observation one of
+    `K` elements is set to 1.
     """
     immutable OneOfK{T<:Number,K} <: LabelEncoding{T,K,2}
         function OneOfK()
@@ -76,7 +125,16 @@ module LabelEnc
 
 
     """
-    TODO
+        LabelEnc.NativeLabels{T,K} <: LabelEncoding{T,K,1}
+
+    A vector-based multi-label encoding with a arbitrary labeltype.
+
+    Represents arbitrary class labels by storing the possible values
+    as a member variable.
+
+    In a binary setting the first element of the stored class labels
+    represents the positive label and the second element the negative
+    label.
     """
     immutable NativeLabels{T,K} <: LabelEncoding{T,K,1}
         label::Vector{T}
