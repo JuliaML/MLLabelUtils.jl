@@ -44,3 +44,8 @@ function classify! end
 function convertlabel end
 function convertlabel! end
 
+function labelmap end
+function labelmap! end
+function labelfreq end
+function labelfreq! end
+
