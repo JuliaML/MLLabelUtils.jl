@@ -1,6 +1,6 @@
 # MLLabelUtils
 
-_Utility package for interpreting and transforming classification targets commonly used in Machine Learning. Most notably this library provides a set of functions to convert target arrays from one representation to another._
+_Utility package for interpreting and transforming classification targets for the most commonly used class-label encodings in Machine Learning. As such, this package provides functionality to derive or assert properties about some label-encoding or targets array, as well as the functions needed to convert some given targets array into a different label encoding._
 
 | **Package Status** | **Package Evaluator** | **Build Status**  |
 |:------------------:|:---------------------:|:-----------------:|
@@ -8,6 +8,9 @@ _Utility package for interpreting and transforming classification targets common
 
 ## Introduction
 
+It is a common requirement in Machine Learning related experiments
+to encode the classification targets of some supervised dataset in
+one way or the other.
 
 
 ## Example
