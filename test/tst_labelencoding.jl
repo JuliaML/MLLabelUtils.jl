@@ -1,5 +1,6 @@
-@testset "constructor" begin
+@testset "learnbase" begin
     @testset "label return poslabel first" begin
+        @test @inferred(label(x for x in 1:2)) == [1,2]
         @test @inferred(label([3,1])) == [3,1]
         @test @inferred(label([2,1])) == [1,2]
         @test @inferred(label([false,true])) == [true,false]
@@ -25,6 +26,16 @@
         @test_throws ArgumentError neglabel([1,1,1,1])
     end
 
+    @testset "label for array" begin
+        @test_throws MethodError label(rand(2,2,3))
+        @test_throws MethodError label([:yes :no; :yes :no])
+        @test @inferred(label(rand(5,10))) == collect(1:5)
+        @test @inferred(label(rand(5,10), ObsDim.First())) == collect(1:10)
+        @test label(rand(5,10), obsdim=1) == collect(1:10)
+    end
+end
+
+@testset "constructor" begin
     @testset "ambiguous" begin
         @test_throws ArgumentError labelenc([1,1,1])
         @test_throws ArgumentError labelenc((1,1,1))

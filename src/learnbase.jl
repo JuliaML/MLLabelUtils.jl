@@ -24,7 +24,7 @@ nlabel{T,K,M}(::Type{LabelEncoding{T,K,M}}) = Int(K)
 nlabel(::Type{Any}) = error("nlabel not defined for the given type")
 nlabel{T}(::Type{T}) = nlabel(supertype(T))
 nlabel{T,K}(::LabelEncoding{T,K}) = Int(K)
-nlabel(itr) = length(unique(itr))
+nlabel(itr) = length(label(itr))
 
 """
     label(obj) -> Vector
@@ -45,6 +45,11 @@ label and the second element the negative label.
      0.0
 """
 label(itr) = _arrange_label(unique(itr))
+label(A::AbstractVector) = _arrange_label(unique(A))
+label{T,N}(A::AbstractArray{T,N}) = throw(MethodError(label, (A,)))
+label{T<:Union{Number,Bool}}(A::AbstractMatrix{T}; obsdim = LearnBase.default_obsdim(A)) = label(A, LearnBase.obs_dim(obsdim))
+label{T<:Union{Number,Bool}}(A::AbstractMatrix{T}, ::Union{ObsDim.Constant{2},ObsDim.Last}) = collect(1:size(A,1))
+label{T<:Union{Number,Bool}}(A::AbstractMatrix{T}, ::ObsDim.First) = collect(1:size(A,2))
 
 # make sure pos label is first
 _arrange_label(lbl::Vector) = lbl
