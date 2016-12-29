@@ -21,7 +21,7 @@ Returns the number of labels represented in the given object `obj`.
 """
 nlabel{T<:BinaryLabelEncoding}(::Type{T}) = 2
 nlabel{T,K,M}(::Type{LabelEncoding{T,K,M}}) = Int(K)
-nlabel(::Type{Any}) = error("nlabel not defined for the given type")
+nlabel(::Type{Any}) = throw(ArgumentError("number of labels could not be inferred for the given type"))
 nlabel{T}(::Type{T}) = nlabel(supertype(T))
 nlabel{T,K}(::LabelEncoding{T,K}) = Int(K)
 nlabel(itr) = length(label(itr))

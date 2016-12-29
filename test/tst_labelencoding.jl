@@ -115,7 +115,7 @@ end
 
     @testset "Indices" begin
         @test LabelEnc.Indices <: MLLabelUtils.LabelEncoding
-        @test_throws ErrorException nlabel(LabelEnc.Indices)
+        @test_throws ArgumentError nlabel(LabelEnc.Indices)
         @test @inferred(nlabel(LabelEnc.Indices{Float32,4})) === 4
         @test @inferred(labeltype(LabelEnc.Indices)) == Any
         @test @inferred(labeltype(LabelEnc.Indices{UInt8})) <: UInt8
@@ -133,7 +133,7 @@ end
 
     @testset "OneOfK" begin
         @test LabelEnc.OneOfK <: MLLabelUtils.LabelEncoding
-        @test_throws ErrorException nlabel(LabelEnc.OneOfK)
+        @test_throws ArgumentError nlabel(LabelEnc.OneOfK)
         @test @inferred(nlabel(LabelEnc.OneOfK{Float32,4})) === 4
         @test @inferred(labeltype(LabelEnc.OneOfK)) == Any
         @test @inferred(labeltype(LabelEnc.OneOfK{UInt8})) <: UInt8
@@ -151,7 +151,7 @@ end
 
     @testset "NativeLabels" begin
         @test LabelEnc.NativeLabels <: MLLabelUtils.LabelEncoding
-        @test_throws ErrorException nlabel(LabelEnc.NativeLabels)
+        @test_throws ArgumentError nlabel(LabelEnc.NativeLabels)
         @test @inferred(nlabel(LabelEnc.NativeLabels{Float32,4})) === 4
         @test @inferred(labeltype(LabelEnc.NativeLabels)) == Any
         @test @inferred(labeltype(LabelEnc.NativeLabels{String})) <: String
