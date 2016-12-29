@@ -2,6 +2,90 @@ _dst_eltype(any, default) = default
 _dst_eltype{T<:Number}(::Type{T}, default) = T
 _dst_eltype(::Type{Bool}, default) = default
 
+@testset "convertlabelview binary" begin
+    @test_throws MethodError convertlabelview(LabelEnc.MarginBased, [1.,0,1], LabelEnc.ZeroOne())
+    @test_throws MethodError convertlabelview(LabelEnc.OneOfK(2), [1.,0,1], LabelEnc.ZeroOne())
+    @test_throws MethodError convertlabelview(LabelEnc.Indices(3), [1.,0,1], LabelEnc.ZeroOne())
+    @test_throws MethodError convertlabelview(LabelEnc.ZeroOne(), [1,2,3], LabelEnc.Indices(Int,3))
+    @test_throws MethodError convertlabelview(LabelEnc.FuzzyBinary(), [1.,0,1], LabelEnc.ZeroOne())
+    @test_throws MethodError convertlabelview(LabelEnc.MarginBased(), Any[1.,0,1], LabelEnc.FuzzyBinary())
+    @test_throws MethodError convertlabelview(LabelEnc.FuzzyBinary(), [1.,0,1], LabelEnc.ZeroOne())
+    @test_throws MethodError convertlabelview(LabelEnc.FuzzyBinary(), [1.,0,1])
+    for (src_lm, src_x) in (
+            (LabelEnc.TrueFalse(),[true,false,true,false,false,true]),
+            (LabelEnc.ZeroOne(Int32),Int32[1,0,1,0,0,1]),
+            (LabelEnc.ZeroOne(Int64),Int64[1,0,1,0,0,1]),
+            (LabelEnc.ZeroOne(Float32),Float32[1,0,1,0,0,1]),
+            (LabelEnc.ZeroOne(),Float64[1,0,1,0,0,1]),
+            (LabelEnc.MarginBased(Int32),Int32[1,-1,1,-1,-1,1]),
+            (LabelEnc.MarginBased(Int64),Int64[1,-1,1,-1,-1,1]),
+            (LabelEnc.MarginBased(Float32),Float32[1,-1,1,-1,-1,1]),
+            (LabelEnc.MarginBased(),Float64[1,-1,1,-1,-1,1]),
+            (LabelEnc.Indices(Float64,2),Float64[1,2,1,2,2,1]),
+            (LabelEnc.OneVsRest(:yes),[:yes,:no,:yes,:maybe,:no,:yes]),
+            (LabelEnc.NativeLabels([:a,:b]),[:a,:b,:a,:b,:b,:a]),
+        )
+        for (dst_lm, dst_x) in (
+                (LabelEnc.TrueFalse(),[true,false,true,false,false,true]),
+                (LabelEnc.ZeroOne(Int32),Int32[1,0,1,0,0,1]),
+                (LabelEnc.ZeroOne(Int64),Int64[1,0,1,0,0,1]),
+                (LabelEnc.ZeroOne(Float32),Float32[1,0,1,0,0,1]),
+                (LabelEnc.ZeroOne(),Float64[1,0,1,0,0,1]),
+                (LabelEnc.MarginBased(Int32),Int32[1,-1,1,-1,-1,1]),
+                (LabelEnc.MarginBased(Int64),Int64[1,-1,1,-1,-1,1]),
+                (LabelEnc.MarginBased(Float32),Float32[1,-1,1,-1,-1,1]),
+                (LabelEnc.MarginBased(),Float64[1,-1,1,-1,-1,1]),
+                (LabelEnc.Indices(Float64,2),Float64[1,2,1,2,2,1]),
+                (LabelEnc.OneVsRest(:yes),[:yes,:not_yes,:yes,:not_yes,:not_yes,:yes]),
+                (LabelEnc.NativeLabels([:a,:b]),[:a,:b,:a,:b,:b,:a]),
+            )
+            c_src_x = copy(src_x)
+            res = @inferred(convertlabelview(dst_lm, c_src_x, src_lm))
+            @test res == dst_x
+            if typeof(src_lm) <: LabelEnc.OneVsRest
+                @test typeof(res) <: MappedArrays.ReadonlyMappedArray
+            else
+                res2 = convertlabelview(dst_lm, c_src_x)
+                @test res == res2
+                @test typeof(res) <: MappedArrays.MappedArray
+                @test c_src_x[1] == poslabel(src_lm)
+                res[1] = neglabel(dst_lm)
+                @test c_src_x[1] == neglabel(src_lm)
+                @test c_src_x[2] == neglabel(src_lm)
+                res[2] = poslabel(dst_lm)
+                @test c_src_x[2] == poslabel(src_lm)
+            end
+        end
+    end
+end
+
+@testset "convertlabelview multiclass" begin
+    for (src_lm, src_x) in (
+            (LabelEnc.Indices(Int32,3),Int32[1,2,3,2,2,1]),
+            (LabelEnc.Indices(Float64,3),Float64[1,2,3,2,2,1]),
+            (LabelEnc.NativeLabels([:a,:b,:c]),[:a,:b,:c,:b,:b,:a]),
+        )
+        for (dst_lm, dst_x) in (
+                (LabelEnc.Indices(UInt8,3),UInt8[1,2,3,2,2,1]),
+                (LabelEnc.Indices(Float64,3),Float64[1,2,3,2,2,1]),
+                (LabelEnc.NativeLabels(["a","b","c"]),["a","b","c","b","b","a"]),
+            )
+            c_src_x = copy(src_x)
+            res = @inferred(convertlabelview(dst_lm, c_src_x, src_lm))
+            @test res == dst_x
+            res2 = convertlabelview(dst_lm, c_src_x)
+            @test res == res2
+            @test typeof(res) <: MappedArrays.MappedArray
+            @test c_src_x[1] == ind2label(1, src_lm)
+            res[1] = ind2label(2, dst_lm)
+            @test c_src_x[1] == ind2label(2, src_lm)
+            @test c_src_x[3] == ind2label(3, src_lm)
+            res[3] = ind2label(1, dst_lm)
+            @test c_src_x[3] == ind2label(1, src_lm)
+        end
+    end
+end
+
 @testset "convert binary" begin
     @test convertlabel(LabelEnc.MarginBased, UInt8[1,0,1], LabelEnc.ZeroOne()) == [0x1,0xff,0x1]
     for (src_lm, src_x) in (

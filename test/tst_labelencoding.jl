@@ -1,5 +1,6 @@
 @testset "learnbase" begin
     @testset "label return poslabel first" begin
+        @test @inferred(nlabel(x for x in 1:2)) === 2
         @test @inferred(label(x for x in 1:2)) == [1,2]
         @test @inferred(label([3,1])) == [3,1]
         @test @inferred(label([2,1])) == [1,2]

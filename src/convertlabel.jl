@@ -18,6 +18,26 @@ _lm{K}(::Type{LabelEnc.Indices}, ::Type, ::Type{Val{K}}) = LabelEnc.Indices(Val{
 _lm{D,K}(::Type{LabelEnc.OneOfK{D}},  ::Type, ::Type{Val{K}}) = LabelEnc.OneOfK(D,Val{K})
 _lm{D,K}(::Type{LabelEnc.Indices{D}}, ::Type, ::Type{Val{K}}) = LabelEnc.Indices(D,Val{K})
 
+## Convert views for Vector based using MappedArrays.
+
+convertlabelview(dst::LabelEnc.FuzzyBinary, values, src::VectorLabelEncoding) = throw(MethodError(convertlabelview, (dst,values,src)))
+convertlabelview(dst::VectorLabelEncoding,  values, src::LabelEnc.FuzzyBinary) = throw(MethodError(convertlabelview, (dst,values,src)))
+
+function convertlabelview(dst::VectorLabelEncoding, values::AbstractVector)
+    convertlabelview(dst, values, labelenc(values))
+end
+
+function convertlabelview{T,V}(dst::VectorLabelEncoding{T,2}, values::AbstractVector{V}, src::LabelEnc.OneVsRest{V})
+    f    = x -> convertlabel(dst, x, src)
+    ReadonlyMappedArray{T,1,typeof(values),typeof(f)}(f, values)
+end
+
+function convertlabelview{T,K,V}(dst::VectorLabelEncoding{T,K}, values::AbstractVector{V}, src::VectorLabelEncoding{V,K})
+    f    = x -> convertlabel(dst, x, src)
+    finv = x -> convertlabel(src, x, dst)
+    MappedArray{T,1,typeof(values),typeof(f),typeof(finv)}(f, finv, values)
+end
+
 ## General Vector based
 
 function convertlabel{T,K,S}(dst::VectorLabelEncoding{T,K}, x, src::VectorLabelEncoding{S,K})::T

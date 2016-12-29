@@ -2,6 +2,7 @@ module MLLabelUtils
 
 using StatsBase
 using LearnBase
+using MappedArrays
 
 export
 
@@ -32,7 +33,9 @@ export
 
     LabelEnc,
     labelenc,
-    islabelenc
+    islabelenc,
+
+    convertlabelview
 
 include("learnbase.jl")
 include("labelencoding.jl")
