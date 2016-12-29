@@ -1,4 +1,14 @@
 @testset "constructor" begin
+    @testset "label return poslabel first" begin
+        @test @inferred(label([3,1])) == [3,1]
+        @test @inferred(label([2,1])) == [1,2]
+        @test @inferred(label([false,true])) == [true,false]
+        @test @inferred(label([-1,1,1,-1])) == [1,-1]
+        @test @inferred(label([0,1,1,0])) == [1,0]
+        @test @inferred(label([0.,1,1,0])) == [1,0]
+        @test @inferred(label([0,1,1,2])) == [0,1,2]
+    end
+
     @testset "ambiguous" begin
         @test_throws ArgumentError labelenc([1,1,1])
         @test_throws ArgumentError labelenc((1,1,1))

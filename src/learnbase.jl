@@ -44,7 +44,26 @@ label and the second element the negative label.
      1.0
      0.0
 """
-label(itr) = unique(itr)
+label(itr) = _arrange_label(unique(itr))
+
+# make sure pos label is first
+_arrange_label(lbl::Vector) = lbl
+_arrange_label{T<:Bool}(lbl::Vector{T}) = [true,false]
+function _arrange_label{T<:Number}(lbl::Vector{T})
+    if length(lbl) == 2
+        if minimum(lbl) == 0 && maximum(lbl) == 1
+            lbl[1] = T(1)
+            lbl[2] = T(0)
+        elseif minimum(lbl) == -1 && maximum(lbl) == 1
+            lbl[1] = T(1)
+            lbl[2] = T(-1)
+        elseif minimum(lbl) == 1 && maximum(lbl) == 2
+            lbl[1] = T(1)
+            lbl[2] = T(2)
+        end
+    end
+    lbl
+end
 
 
 """

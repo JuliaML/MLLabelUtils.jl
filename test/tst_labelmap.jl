@@ -29,7 +29,7 @@
         lm = @inferred labelmap([1.,-1,-1,1,1])
         @test typeof(labelenc(lm)) <: LabelEnc.MarginBased{Float64}
         @test typeof(lm) <: Dict{Float64,Vector{Int}}
-        @test @inferred(label(lm)) == [-1,1]
+        @test @inferred(label(lm)) == [1,-1]
         @test typeof(label(lm)) <: Vector{Float64}
         @test nlabel(lm) === 2
         @test lm[1] == [1,4,5]
@@ -102,7 +102,7 @@ end
         lm = @inferred labelfreq([1.,-1,-1,1,1])
         @test typeof(labelenc(lm)) <: LabelEnc.MarginBased{Float64}
         @test typeof(lm) <: Dict{Float64,Int}
-        @test @inferred(label(lm)) == [-1,1]
+        @test @inferred(label(lm)) == [1,-1]
         @test typeof(label(lm)) <: Vector{Float64}
         @test nlabel(lm) === 2
         @test lm[1] == 3
