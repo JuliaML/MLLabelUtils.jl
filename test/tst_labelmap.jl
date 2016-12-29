@@ -4,7 +4,7 @@
         lm = @inferred labelmap([:yes,:no,:no,:yes,:yes])
         @test typeof(labelenc(lm)) <: LabelEnc.NativeLabels{Symbol,2}
         @test typeof(lm) <: Dict{Symbol,Vector{Int}}
-        @test @inferred(label(lm)) == [:yes, :no]
+        @test sort(@inferred(label(lm))) == sort([:yes, :no])
         @test typeof(label(lm)) <: Vector{Symbol}
         @test nlabel(lm) === 2
         @test lm[:yes] == [1,4,5]
@@ -67,7 +67,7 @@ end
         lm = @inferred labelfreq(labelmap([:yes,:no,:no,:yes,:yes]))
         @test typeof(labelenc(lm)) <: LabelEnc.NativeLabels{Symbol,2}
         @test typeof(lm) <: Dict{Symbol,Int}
-        @test @inferred(label(lm)) == [:yes, :no]
+        @test sort(@inferred(label(lm))) == sort([:yes, :no])
         @test typeof(label(lm)) <: Vector{Symbol}
         @test nlabel(lm) === 2
         @test lm[:yes] == 3
@@ -77,7 +77,7 @@ end
         lm = @inferred labelfreq([:yes,:no,:no,:yes,:yes])
         @test typeof(labelenc(lm)) <: LabelEnc.NativeLabels{Symbol,2}
         @test typeof(lm) <: Dict{Symbol,Int}
-        @test @inferred(label(lm)) == [:yes, :no]
+        @test sort(@inferred(label(lm))) == sort([:yes, :no])
         @test typeof(label(lm)) <: Vector{Symbol}
         @test nlabel(lm) === 2
         @test lm[:yes] == 3
