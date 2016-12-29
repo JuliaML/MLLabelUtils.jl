@@ -3,11 +3,11 @@ Getting Started
 
 MLLabelUtils is the result of a collaborative effort to design an
 efficient but also convenient-to-use library for working with
-the most commonly used class-label encodings in Machine Learning.
+the most commonly utilized class-label encodings in Machine Learning.
 As such, this package provides functionality to derive or assert
 properties about some label-encoding or target array, as well as
-the functions needed to convert some given targets to a different
-label encoding.
+the functions needed to convert given targets into a different
+format.
 
 Installation
 -------------
@@ -72,8 +72,8 @@ and a mapping from label to the elements of the target array
 
 .. tip::
 
-   Because :func:`labelfreq` utilize a ``Dict`` to store the result,
-   it straight forward to visualize the class distribution
+   Because :func:`labelfreq` utilizes a ``Dict`` to store its result,
+   it is straight forward to visualize the class distribution
    (using the absolute frequencies) right in the REPL using the
    `UnicodePlots.jl <https://github.com/Evizero/UnicodePlots.jl>`_
    package.
@@ -88,10 +88,10 @@ and a mapping from label to the elements of the target array
       #     no │######################### 2             │
       #        └────────────────────────────────────────┘
 
-If you find yourself writing some custom function to train a
-specific model, chances are that you want to assert if the given
-targets are in the correct encoding that the model requires.
-We provide a few functions for such a scenario, namely
+If you find yourself writing some custom function that is intended
+to train some specific supervised model, chances are that you want to
+assert if the given targets are in the correct encoding that the model
+requires. We provide a few functions for such a scenario, namely
 :func:`labelenc` and :func:`islabelenc`.
 
 .. code-block:: jlcon
@@ -113,9 +113,8 @@ We provide a few functions for such a scenario, namely
    julia> islabelenc(true_targets, LabelEnc.MarginBased)
    false
 
-In the case that you find yourself dealing with targets in the
-wrong encoding you may want to convert them into the format you
-require.
+In the case that it turns out the given targets are in the wrong
+encoding you may want to convert them into the format you require.
 For that purpose we expose the function :func:`convertlabel`.
 
 .. code-block:: jlcon
@@ -165,8 +164,8 @@ For that purpose we expose the function :func:`convertlabel`.
     0.0  1.0
 
 It may be interesting to point out explicitly that we provide
-:class:`OneVsRest` to conveniently convert a multi-class problem
-into a two-class problem.
+:class:`LabelEnc.OneVsRest` to conveniently convert a multi-class
+problem into a two-class problem.
 
 .. code-block:: jlcon
 
@@ -188,13 +187,13 @@ into a two-class problem.
     1.0
     1.0
 
-Some encodings come with an implicit expectation of how raw
+Some encodings come with an implicit contract of how the raw
 predictions of some model should look like and how to classify a
 raw prediction into a predicted class label.
 For that we provide the function :func:`classify` and its mutating
 version :func:`classify!`.
 
-For :class:`ZeroOne` the expectation is that the raw prediction is
+For :class:`LabelEnc.ZeroOne` this contract is that the raw prediction is
 between 0 and 1 and represents a degree of certainty that the
 observation is of the positive class. That means that in order
 to classify a raw prediction to either positive or negative,
@@ -219,10 +218,10 @@ as positive.
     0
     1
 
-For :class:`MarginBased` on the other hand the decision boundary
-is predefined at 0, meaning that any raw prediction greater than or
-equal to zero is considered a positive prediction, while any negative
-raw prediction is considered a negative prediction.
+For :class:`LabelEnc.MarginBased` on the other hand the decision
+boundary is predefined at 0, meaning that any raw prediction greater
+than or equal to zero is considered a positive prediction, while any
+negative raw prediction is considered a negative prediction.
 
 .. code-block:: jlcon
 
@@ -237,11 +236,13 @@ raw prediction is considered a negative prediction.
     -1
      1
 
-The encoding :class:`OneOfK` is special in that it is matrix-based
-and thus there exists the concept of ``ObsDim``, i.e. the freedom
-to choose which array dimension denotes the observations.
+The encoding :class:`LabelEnc.OneOfK` is special in that it is
+matrix-based and thus there exists the concept of ``ObsDim``,
+i.e. the freedom to choose which array dimension denotes the
+observations.
 The classified prediction will be the index of the largest element of
-an observation
+an observation. By default the "obsdim" is defined as the last array
+dimension.
 
 .. code-block:: jlcon
 
@@ -290,7 +291,7 @@ To get help on specific functionality you can either look up the
 information here, or if you prefer you can make use of Julia's
 native doc-system.
 The following example shows how to get additional information on
-:class:`OneOfK` within Julia's REPL:
+:class:`LabelEnc.OneOfK` within Julia's REPL:
 
 .. code-block:: julia
 

@@ -28,18 +28,25 @@ functionality provided by this or other packages.
 
    introduction/gettingstarted
 
+
 API Documentation
 --------------------
 
 .. toctree::
    :maxdepth: 2
 
+   api/interface
    api/labelencoding
-
 
 
 Indices and tables
 ==================
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+
+   about/license
 
 * :ref:`genindex`
 * :ref:`modindex`
