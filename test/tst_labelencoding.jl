@@ -7,6 +7,22 @@
         @test @inferred(label([0,1,1,0])) == [1,0]
         @test @inferred(label([0.,1,1,0])) == [1,0]
         @test @inferred(label([0,1,1,2])) == [0,1,2]
+        @test @inferred(poslabel([3,1])) === 3
+        @test @inferred(poslabel([2,1])) === 1
+        @test @inferred(poslabel([false,true])) === true
+        @test @inferred(poslabel([-1,1,1,-1])) === 1
+        @test @inferred(poslabel([0,1,1,0])) === 1
+        @test @inferred(poslabel([0.,1,1,0])) === 1.
+        @test_throws ArgumentError poslabel([0,1,1,2])
+        @test_throws ArgumentError poslabel([1,1,1,1])
+        @test @inferred(neglabel([3,1])) === 1
+        @test @inferred(neglabel([2,1])) === 2
+        @test @inferred(neglabel([false,true])) === false
+        @test @inferred(neglabel([-1,1,1,-1])) === -1
+        @test @inferred(neglabel([0,1,1,0])) === 0
+        @test @inferred(neglabel([0.,1,1,0])) === 0.
+        @test_throws ArgumentError neglabel([0,1,1,2])
+        @test_throws ArgumentError neglabel([1,1,1,1])
     end
 
     @testset "ambiguous" begin
