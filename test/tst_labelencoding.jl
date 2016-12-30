@@ -62,7 +62,7 @@ end
         @test LabelEnc.ZeroOne <: MLLabelUtils.BinaryLabelEncoding
         @test @inferred(nlabel(LabelEnc.ZeroOne)) === 2
         @test @inferred(nlabel(LabelEnc.ZeroOne{Float32})) === 2
-        @test @inferred(labeltype(LabelEnc.ZeroOne)) == Any
+        @test @inferred(labeltype(LabelEnc.ZeroOne)) == Number
         @test @inferred(labeltype(LabelEnc.ZeroOne{Float32})) <: Float32
         @test typeof(@inferred(LabelEnc.ZeroOne{Int,Float32}())) <: LabelEnc.ZeroOne{Int,Float32}
         @test typeof(@inferred(LabelEnc.ZeroOne())) <: LabelEnc.ZeroOne{Float64,Float64}
@@ -87,7 +87,7 @@ end
         @test LabelEnc.MarginBased <: MLLabelUtils.BinaryLabelEncoding
         @test @inferred(nlabel(LabelEnc.MarginBased)) === 2
         @test @inferred(nlabel(LabelEnc.MarginBased{Float32})) === 2
-        @test @inferred(labeltype(LabelEnc.MarginBased)) == Any
+        @test @inferred(labeltype(LabelEnc.MarginBased)) == Number
         @test @inferred(labeltype(LabelEnc.MarginBased{Float32})) <: Float32
         @test typeof(@inferred(LabelEnc.MarginBased())) <: LabelEnc.MarginBased{Float64}
         @test typeof(@inferred(LabelEnc.MarginBased(Int))) <: LabelEnc.MarginBased{Int}
@@ -119,7 +119,7 @@ end
         @test LabelEnc.Indices <: MLLabelUtils.LabelEncoding
         @test_throws ArgumentError nlabel(LabelEnc.Indices)
         @test @inferred(nlabel(LabelEnc.Indices{Float32,4})) === 4
-        @test @inferred(labeltype(LabelEnc.Indices)) == Any
+        @test @inferred(labeltype(LabelEnc.Indices)) == Number
         @test @inferred(labeltype(LabelEnc.Indices{UInt8})) <: UInt8
         @test @inferred(labeltype(LabelEnc.Indices{UInt8,3})) <: UInt8
         @test_throws TypeError LabelEnc.Indices(Val{3.})
@@ -137,7 +137,7 @@ end
         @test LabelEnc.OneOfK <: MLLabelUtils.LabelEncoding
         @test_throws ArgumentError nlabel(LabelEnc.OneOfK)
         @test @inferred(nlabel(LabelEnc.OneOfK{Float32,4})) === 4
-        @test @inferred(labeltype(LabelEnc.OneOfK)) == Any
+        @test @inferred(labeltype(LabelEnc.OneOfK)) == Number
         @test @inferred(labeltype(LabelEnc.OneOfK{UInt8})) <: UInt8
         @test @inferred(labeltype(LabelEnc.OneOfK{UInt8,3})) <: UInt8
         @test_throws TypeError LabelEnc.OneOfK(Val{3.})

@@ -185,6 +185,11 @@ label{T,K}(::LabelEnc.Indices{T,K}) = collect(one(T):T(K))
 label{T,K}(::LabelEnc.OneOfK{T,K})  = collect(1:K)
 label(lm::LabelEnc.NativeLabels) = lm.label
 
+labeltype(::Type{LabelEnc.ZeroOne}) = Number
+labeltype(::Type{LabelEnc.MarginBased}) = Number
+labeltype(::Type{LabelEnc.Indices}) = Number
+labeltype(::Type{LabelEnc.OneOfK}) = Number
+
 # What it means to be a positive label
 isposlabel(value, ::LabelEnc.FuzzyBinary) = _ambiguous()
 isposlabel(value, ovr::LabelEnc.OneVsRest) = (value == ovr.poslabel)
