@@ -2,9 +2,9 @@ MLLabelUtils.jl's documentation
 =================================
 
 This package represents a community effort to provide common
-functionality to interpret and transform classification targets.
+functionality for interpreting and transforming classification targets.
 It does so by defining a set of commonly used class-label encodings.
-This package is part of the JuliaML ecosystem.
+It is part of the `JuliaML <https://github.com/JuliaML>`_ ecosystem.
 
 The main intend of this package is to be a light-weight back-end for
 other JuliaML packages that deal with classification problems.
@@ -32,9 +32,13 @@ functionality provided by this or other packages.
 API Documentation
 --------------------
 
+This section gives a more detailed treatment of all the exposed
+functions and their available methods.
+
 .. toctree::
    :maxdepth: 2
 
+   api/targets
    api/interface
    api/labelencoding
 

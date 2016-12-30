@@ -1,20 +1,6 @@
 Shared Interface
-=================
+=====================
 
-Computing the labels
---------------------------
-
-.. function:: label(iter) -> Vector
-
-   Returns the labels represented in the given iterator `iter`.
-   Note that the order of the labels matters. In the case of two
-   labels, the first element represents the positive label and the
-   second element the negative label respectively.
-
-.. function:: nlabel(iter) -> Int
-
-   Returns the number of labels represented in the given iterator
-   `iter`.
 
 .. function:: labeltype(type) -> DataType
 
@@ -30,25 +16,6 @@ Computing the labels
 
    If the encoding is binary it will return the negative label of it.
    The function will throw an error otherwise.
-
-.. function:: labelmap(obj) -> Dict
-
-   Computes a mapping from the labels in `obj` to all the individual
-   element-indices in `obj` that correspond to that label
-
-.. function:: labelmap!(dict, idx, elem) -> Dict
-
-   Updates the given label-map `dict` with the new element `elem`,
-   which is assumed to be associated with the index `idx`.
-
-.. function:: labelfreq(obj) -> Dict
-
-   Computes the absolute frequencies for each label in `obj`.
-
-.. function:: labelfreq!(dict, obj) -> Dict
-
-   Updates the given label-frequency-map `dict` with the absolute
-   frequencies for each label in `obj`
 
 Deriving the encoding
 --------------------------------------
