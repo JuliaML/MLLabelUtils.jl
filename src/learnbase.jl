@@ -126,7 +126,7 @@ The function will throw an error otherwise.
     julia> poslabel(LabelEnc.MarginBased(Float32))
     1.0f0
 """
-function poslabel(values::AbstractVector)
+function poslabel(values::AbstractArray)
     lbl = label(values)
     length(lbl) == 2 || throw(ArgumentError("The given object has more or less than two labels, thus poslabel is not defined."))
     lbl[1]
@@ -141,7 +141,7 @@ The function will throw an error otherwise.
     julia> neglabel(LabelEnc.MarginBased(Float32))
     -1.0f0
 """
-function neglabel(values::AbstractVector)
+function neglabel(values::AbstractArray)
     lbl = label(values)
     length(lbl) == 2 || throw(ArgumentError("The given object has more or less than two labels, thus neglabel is not defined."))
     lbl[2]
