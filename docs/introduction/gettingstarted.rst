@@ -12,9 +12,10 @@ format.
 Installation
 -------------
 
-To install MLLabelUtils.jl, start up Julia and type the following
-code-snipped into the REPL. It makes use of the native Julia
-package manger.
+To install `MLLabelUtils.jl
+<https://github.com/JuliaML/MLLabelUtils.jl>`_, start up `Julia
+<http://julialang.org/>`_ and type the following code-snipped
+into the REPL. It makes use of the native Julia package manger.
 
 .. code-block:: julia
 
@@ -31,7 +32,8 @@ you can manually choose to be on the latest (untagged) version.
 Overview
 ------------
 
-This package is registered in the Julia package ecosystem. Once
+Let us take a look at some examples (with only minor explanation)
+to get a feeling for what one can do with this package. Once
 installed the package can be imported just as any other Julia
 package.
 
@@ -39,14 +41,11 @@ package.
 
    using MLLabelUtils
 
-Let us take a look at some examples (with only minor explanation) to
-get a feeling for what one can do with this package.
-
-For starters, we provide a few utility functions to compute some
-properties of the target array. These include the number of labels
-(see :func:`nlabel`), the labels themselves (see :func:`label`),
-and a mapping from label to the elements of the target array
-(see :func:`labelmap` and :func:`labelfreq`).
+For starters, the library provides a few utility functions to
+compute various properties of the target array. These include the
+number of labels (see :func:`nlabel`), the labels themselves (see
+:func:`label`), and a mapping from label to the elements of the
+target array (see :func:`labelmap` and :func:`labelfreq`).
 
 .. code-block:: jlcon
 
@@ -189,17 +188,17 @@ problem into a two-class problem.
 
 Some encodings come with an implicit contract of how the raw
 predictions of some model should look like and how to classify a
-raw prediction into a predicted class label.
-For that we provide the function :func:`classify` and its mutating
-version :func:`classify!`.
+raw prediction into a predicted class-label.
+For that purpose we provide the function :func:`classify` and its
+mutating version :func:`classify!`.
 
-For :class:`LabelEnc.ZeroOne` this contract is that the raw prediction
-is between 0 and 1 and represents a degree of certainty that the
-observation is of the positive class. That means that in order
-to classify a raw prediction to either positive or negative,
-one needs to know the "cutoff" parameters, which determines at which
-degree of certainty a prediction is "good enough" to classify
-as positive.
+For :class:`LabelEnc.ZeroOne` the convention is that the raw
+prediction is between 0 and 1 and represents a degree of
+certainty that the observation is of the positive class. That
+means that in order to classify a raw prediction to either
+positive or negative, one needs to define a "threshold"
+parameter, which determines at which degree of certainty a
+prediction is "good enough" to classify as positive.
 
 .. code-block:: jlcon
 
@@ -274,15 +273,20 @@ How to ... ?
 
 Chances are you ended up here with a very specific use-case in mind.
 This section outlines a number of different but common scenarios and
-explains how this or a related package can be utilized to solve them.
+links to places that explain how this or a related package can be
+utilized to solve them.
+
+**What MLLabelUtils can do**
+
+- TODO: Use OneOfK encoding in which each row denotes an observation
+
+**What MLLabelUtils can NOT do**
 
 - `Compute classification metrics, such as accuracy or a confusion
   matrix <https://github.com/JuliaML/MLMetrics.jl>`_
 
 - `Compute margin-based loss functions, such as the hinge loss
   <http://lossesjl.readthedocs.io/en/latest/>`_
-
-- TODO: Use OneOfK encoding in which each row denotes an observation
 
 Getting Help
 -------------

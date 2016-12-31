@@ -618,10 +618,11 @@ Aside from the one broadcast-able method that is implemented for
 converting single labels, we provide a range of methods that work on
 whole arrays.
 These are more flexible because by having an array as input these
-methods have more information available to make reasonable decisions.
-As a consequence of that can we consider the source encoding optional,
-because these methods can now make use of :func:`labelenc` internally
-to infer it automatically.
+methods have more information available to make reasonable
+decisions. As a consequence of that can we consider the
+"source-encoding" parameter optional, because these methods can
+now make use of :func:`labelenc` internally to infer it
+automatically.
 
 .. function:: convertlabel(dst_encoding, arr, [src_encoding], [obsdim])
 
@@ -712,8 +713,9 @@ convert a multi-class problem into a two-class problem.
 
 
 We also allow a more concise way to specify that your are using a
-:class:`LabelEnc.NativeLabels` encoding by just writing the
-label-vector one would usually pass to its constructor
+:class:`LabelEnc.NativeLabels` encoding by just passing the
+label-vector directly, that you would normally pass to its
+constructor.
 
 .. code-block:: jlcon
 
@@ -823,18 +825,19 @@ into the original targets.
    output encoding `new_encoding`. This means that the convertion
    happens on the fly when an element of the resulting mapped array
    is accessed.
-   This resulting mapped array will we even be writeable unless
+   This resulting mapped array will even be writeable, unless
    `src_encoding` is :class:`LabelEnc.OneVsRest`.
 
    Note that both encodings are expected to be vector-based, meaning
    that this method does not work for :class:`LabelEnc.OneOfK`.
-   It does, however, support broadcasting.
 
    :param LabelEncoding dst_encoding: The desired vector-based output
                                       encoding.
 
-   :param Any src_label: The input label one wants to convert. It is
-                         expected to be consistent with `src_encoding`.
+   :param AbstractVector vec: The input targets that one wants to
+                              convert using `dst_encoding`.
+                              It is expected to be consistent with
+                              `src_encoding`.
 
    :param LabelEncoding src_encoding: A vector-based label-encoding
                                       that is assumed to have produced
@@ -1068,7 +1071,7 @@ instead of a concrete instance.
 
 .. code-block:: jlcon
 
-   julia> classify(0.3f0, LabelEnc.ZeroOne)
+   julia> classify(0.3f0, LabelEnc.ZeroOne) # threshold fixed at 0.5
    0.0f0
 
    julia> classify(0.3, LabelEnc.ZeroOne)
@@ -1090,7 +1093,7 @@ instead of a concrete instance.
    :param AbstractArray yhat: The numeric predictions in the form of
                               either a vector or a matrix.
 
-   :param DataType type: Any subtype of :class:`LabelEncoding{T,K,1}`
+   :param DataType type: Any subtype of :class:`LabelEncoding{T,K,2}`
 
    :param ObsDimension obsdim: Optional iff `yhat` is a matrix.
                                Denotes which of the two array
@@ -1152,10 +1155,49 @@ a negative prediction.
    label given the `encoding`. This function takes potential
    classification rules into account.
 
+.. code-block:: jlcon
+
+   julia> isposlabel([1,0], LabelEnc.OneOfK(2))
+   true
+
+   julia> isposlabel([0,1], LabelEnc.OneOfK(2))
+   false
+
+   julia> isposlabel(-5, LabelEnc.MarginBased())
+   false
+
+   julia> isposlabel(2, LabelEnc.MarginBased())
+   true
+
+   julia> isposlabel(0.3f0, LabelEnc.ZeroOne(0.5))
+   false
+
+   julia> isposlabel(0.3f0, LabelEnc.ZeroOne(0.2))
+   true
+
 .. function:: isneglabel(yhat, encoding) -> Bool
 
    Checks if the given value `yhat` can be interpreted as the negative
    label given the `encoding`. This function takes potential
    classification rules into account.
 
+.. code-block:: jlcon
+
+   julia> isneglabel([1,0], LabelEnc.OneOfK(2))
+   false
+
+   julia> isneglabel([0,1], LabelEnc.OneOfK(2))
+   true
+
+   julia> isneglabel(-5, LabelEnc.MarginBased())
+   true
+
+   julia> isneglabel(2, LabelEnc.MarginBased())
+   false
+
+   julia> isneglabel(0.3f0, LabelEnc.ZeroOne(0.5))
+   true
+
+   julia> isneglabel(0.3f0, LabelEnc.ZeroOne(0.2))
+   false
 

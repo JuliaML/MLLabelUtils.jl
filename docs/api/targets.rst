@@ -1,11 +1,6 @@
 Classification Targets
 =========================
 
-In a classification setting one usually treats the desired output
-variable as a discrete categorical variable.
-That is true even if the values themself are in numerical form,
-which they often are for practical reasons.
-
 In this section we will outline the functionality that this package
 provides in order to work with classification targets.
 We will start by discussion the terms we use and how they are
@@ -13,6 +8,12 @@ used in the context of this package.
 
 Terms and Definitions
 -----------------------
+
+In a classification setting one usually treats the desired output
+variable (also called *ground truths*, or *targets*) as a
+discrete categorical variable. That is true even if the values
+themself are of numerical type, which they often are for
+practical reasons.
 
 We use the term **targets** when we talk about concrete data.
 Concretely, targets are the desired output of some dataset and further
@@ -55,21 +56,23 @@ take one of two values, we call the classification problem **binary**,
 or **two-class**.
 
 For our purposes we treat the term "class" as an abstract concept
-with little to no practical appearance in the package.
-In essence we think about a **class** as the abstract interpretation
-behind some concrete value.
-For example: Let's say we try to predict if a tumor is malignant
-or benign. The two classes could then be described as "malignant tumor"
-and "benign tumor". One could argue that we could translate these
-abstract concepts into a string or symbol quite easily and thus make
-it concrete, but that is not the point. The point is, that the
-concrete interpretation behind the prediction targets is of little
-consequence for the library and as such it should not talk about it.
+with little to no practical appearance in the functionality
+provided by this package. In essence we think about a **class**
+as the abstract interpretation behind some concrete value.  For
+example: Let's say we try to predict if a tumor is malignant or
+benign. The two classes could then be described as "malignant
+tumor" and "benign tumor". One could argue that we could
+translate these abstract concepts into a string or symbol quite
+easily and thus make it concrete, but that is not the point. The
+point is, that the concrete interpretation behind the prediction
+targets is of little consequence for the library and as such it
+should not talk about it.
 
-This library cares about representation. The representation can vary
-a lot between one model to another, while the "class" remains the same.
-For example, some models require the targets in the form of numbers
-in the set :math:`\{1,0\}`, other in :math:`\{1,-1\}` etc.
+Instead, this library cares about representation. The
+representation can vary a lot between one model to another, while
+the "class" remains the same.  For example, some models require
+the targets in the form of numbers in the set :math:`\{1,0\}`,
+other in :math:`\{1,-1\}` etc.
 
 We call a concrete and consistent representation of a single class a
 **label**. That implies that each class should consistently be
@@ -151,10 +154,10 @@ The following example highlights the different results for
     1
     0
 
-While the general iterator implementation covers most cases,
-we do selectively treat some iterators (such as ``Dict``), differently,
-or even disallow some completely (such as any ``AbstractArray`` that
-has more than two dimensions).
+While the generic iterator implementation covers most cases, we
+do selectively treat some iterators (such as ``Dict``),
+differently, or even disallow some completely (such as any
+``AbstractArray`` that has more than two dimensions).
 
 .. function:: label(dict) -> Vector
 
@@ -188,16 +191,16 @@ about the labels, but their structure.
    :param AbstractMatrix mat: An numeric array that is assumed to be in
                               the form of a one-hot encoding or similar.
 
-   :param ObsDimension obsdim: Optional. Denotes which of the two array
-                               dimensions of `mat` denotes the
-                               observations. It can be specified as
-                               a type-stable positional argument or
-                               a smart keyword.
-                               Defaults to ``Obsdim.Last()``.
-                               see ``?ObsDim`` for more information.
+   :param ObsDimension obsdim: Optional. Denotes which of the two
+        array dimensions of `mat` denotes the observations. It
+        can be specified as a type-stable positional argument or
+        a smart keyword (Note: for this method the return-value
+        will type-stable either way). Defaults to
+        ``Obsdim.Last()``.  see ``?ObsDim`` for more information.
 
-   :return: A vector of indices that enumerate the dimension of
-            `mat` that does not denote the observations.
+   :return: A vector of indices that enumerate the particular
+            dimension of `mat` that does not denote the
+            observations.
 
 .. code-block:: jlcon
 
@@ -208,6 +211,12 @@ about the labels, but their structure.
     3
 
    julia> label([0 1 0; 1 0 0; 0 1 0; 0 0 1], obsdim = 1)
+   3-element Array{Int64,1}:
+    1
+    2
+    3
+
+   julia> label([0 1 0; 1 0 0; 0 1 0; 0 0 1], ObsDim.First()) # positional obsdim
    3-element Array{Int64,1}:
     1
     2
