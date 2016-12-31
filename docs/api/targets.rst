@@ -66,18 +66,10 @@ it concrete, but that is not the point. The point is, that the
 concrete interpretation behind the prediction targets is of little
 consequence for the library and as such it should not talk about it.
 
-This library cares about representation. That representation can vary
-a lot between one model to another while the "class" remains the same.
+This library cares about representation. The representation can vary
+a lot between one model to another, while the "class" remains the same.
 For example, some models require the targets in the form of numbers
 in the set :math:`\{1,0\}`, other in :math:`\{1,-1\}` etc.
-
-.. note::
-
-   If there is one aspect of the library that we could possible
-   associate with the term "class", then it would be the unique index
-   of a label, which is used internally by the library to convert
-   between different label-encodings, and thus consistent even between
-   encodings.
 
 We call a concrete and consistent representation of a single class a
 **label**. That implies that each class should consistently be
@@ -85,8 +77,15 @@ represented by a single label respectively.
 How a label looks like is completely up to the user, but there
 are some forms that are more common than others.
 A convention of what labels to use to represent a fixed number of
-classes will be referred to as a label-encoding, or short **encoding**.
+classes will be referred to as a **label-encoding**, or short encoding.
 
+.. note::
+
+   To be fair, the term "class-encoding" would be more appropriate.
+   However, when considering that we need to use the defined terms for
+   naming the functions and types, it seemed more reasonable (and
+   user-friendly) to keep the list of utilized domain-specific words
+   small and consistent.
 
 Determine the Labels
 ---------------------------
@@ -175,6 +174,44 @@ has more than two dimensions).
             of two labels, the first element will represent the
             positive label and the second element the negative label
             respectively.
+
+We also treat matrices in a special way. The reason for this is that
+for our purposes it is not their values that encode the information
+about the labels, but their structure.
+
+.. function:: label(mat, [obsdim]) -> Vector
+
+   Returns a vector that enumerates the dimension of the given matrix
+   `mat` that does **not** denote the observations. In other words it
+   returns the indices of that dimension.
+
+   :param AbstractMatrix mat: An numeric array that is assumed to be in
+                              the form of a one-hot encoding or similar.
+
+   :param ObsDimension obsdim: Optional. Denotes which of the two array
+                               dimensions of `mat` denotes the
+                               observations. It can be specified as
+                               a type-stable positional argument or
+                               a smart keyword.
+                               Defaults to ``Obsdim.Last()``.
+                               see ``?ObsDim`` for more information.
+
+   :return: A vector of indices that enumerate the dimension of
+            `mat` that does not denote the observations.
+
+.. code-block:: jlcon
+
+   julia> label([0 1 0 0; 1 0 1 0; 0 0 0 1])
+   3-element Array{Int64,1}:
+    1
+    2
+    3
+
+   julia> label([0 1 0; 1 0 0; 0 1 0; 0 0 1], obsdim = 1)
+   3-element Array{Int64,1}:
+    1
+    2
+    3
 
 For convenience one can also just query for the label that
 corresponds to the positive class or the negative class respectively.

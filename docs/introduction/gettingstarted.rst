@@ -54,8 +54,8 @@ and a mapping from label to the elements of the target array
 
    julia> label(true_targets)
    2-element Array{Int64,1}:
-    0
     1
+    0
 
    julia> nlabel(true_targets)
    2
@@ -193,8 +193,8 @@ raw prediction into a predicted class label.
 For that we provide the function :func:`classify` and its mutating
 version :func:`classify!`.
 
-For :class:`LabelEnc.ZeroOne` this contract is that the raw prediction is
-between 0 and 1 and represents a degree of certainty that the
+For :class:`LabelEnc.ZeroOne` this contract is that the raw prediction
+is between 0 and 1 and represents a degree of certainty that the
 observation is of the positive class. That means that in order
 to classify a raw prediction to either positive or negative,
 one needs to know the "cutoff" parameters, which determines at which
