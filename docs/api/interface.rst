@@ -14,7 +14,7 @@ Inferring the Encoding
 In many cases we may not want to just simply assume or guess the
 particular encoding that some user-provided targets are in.
 Instead we would rather let the targets themself inform us what
-encoding they are in.
+encoding they are using.
 To that end we provide the function :func:`labelenc`.
 
 .. function:: labelenc(vec) -> LabelEncoding
@@ -27,7 +27,7 @@ To that end we provide the function :func:`labelenc`.
 
    :param AbstractVector vec: The classification targets in vector form.
 
-   :return: The label-encoding that is deemed most approriate to
+   :return: The label-encoding that is deemed most approriate
             to describe the values found in `vec`.
 
 .. code-block:: jlcon
@@ -65,7 +65,7 @@ observations.
                                Defaults to ``Obsdim.Last()``.
                                see ``?ObsDim`` for more information.
 
-   :return: The label-encoding that is deemed most approriate to
+   :return: The label-encoding that is deemed most approriate
             to describe the structure and values found in `mat`.
 
 .. code-block:: jlcon
@@ -89,7 +89,7 @@ encodings, we provide the function :func:`islabelenc`.
 
 .. function:: islabelenc(vec, encoding) -> Bool
 
-   Checks is the given values in `vec` can be described as being
+   Checks if the given values in `vec` can be described as being
    produced by the given `encoding`. This function does not only
    check the values but also for the correct type.
    Furthermore it also checks if the total number of labels is
@@ -195,7 +195,7 @@ of the given targets belong to a **family** of possible label-encodings.
 
    Checks is the given values in `vec` can be described as being
    produced by any possible instance of the given `type`.
-   In other word this function check if the labels in `vec` can
+   In other word this function checks if the labels in `vec` can
    be described as being consistent with the family of label-encodings
    specified by `type`.
    This means that the check is much more tolerant concerning the
@@ -286,7 +286,7 @@ Properties of an Encoding
 
 Once we have an instance of some label-encoding, we can compute
 a number of useful properties about it.
-For example we can also query all the labels that an encoding uses
+For example we can query all the labels that an encoding uses
 to represent the classes.
 
 .. function:: label(encoding) -> Vector
@@ -515,7 +515,7 @@ to represent the underlying class we provide the function
 We also provide inverse function for converting a label of a specific
 encoding into the corresponding label-index.
 Note that this function does not check if the given label is of the
-expected type, but simple that it is of the appropriate value.
+expected type, but simply that it is of the appropriate value.
 
 .. function:: label2ind(label, encoding) -> Int
 
@@ -570,14 +570,14 @@ For that purpose we expose the function :func:`convertlabel`.
    encoding `dst_encoding`.
 
    Note that both encodings are expected to be vector-based, meaning
-   that this methods does not work for :class:`LabelEnc.OneOfK`.
+   that this method does not work for :class:`LabelEnc.OneOfK`.
    It does, however, support broadcasting.
 
    :param LabelEncoding dst_encoding: The vector-based label-encoding
                                       that should be used to produce
                                       the output label.
 
-   :param Any src_label: The input label one want to convert. It is
+   :param Any src_label: The input label one wants to convert. It is
                          expected to be consistent with `src_encoding`.
 
    :param LabelEncoding src_encoding: A vector-based label-encoding
@@ -619,9 +619,9 @@ converting single labels, we provide a range of methods that work on
 whole arrays.
 These are more flexible because by having an array as input these
 methods have more information available to make reasonable decisions.
-As a consequence of that is the source encoding considered optional
-because these methods can make use of :func:`labelenc` internally to
-infer it automatically.
+As a consequence of that can we consider the source encoding optional,
+because these methods can now make use of :func:`labelenc` internally
+to infer it automatically.
 
 .. function:: convertlabel(dst_encoding, arr, [src_encoding], [obsdim])
 
@@ -827,13 +827,13 @@ into the original targets.
    `src_encoding` is :class:`LabelEnc.OneVsRest`.
 
    Note that both encodings are expected to be vector-based, meaning
-   that this methods does not work for :class:`LabelEnc.OneOfK`.
+   that this method does not work for :class:`LabelEnc.OneOfK`.
    It does, however, support broadcasting.
 
    :param LabelEncoding dst_encoding: The desired vector-based output
                                       encoding.
 
-   :param Any src_label: The input label one want to convert. It is
+   :param Any src_label: The input label one wants to convert. It is
                          expected to be consistent with `src_encoding`.
 
    :param LabelEncoding src_encoding: A vector-based label-encoding
@@ -960,7 +960,7 @@ a :class:`LabelEnc.ZeroOne` encoding.
 
 .. function:: classify(yhat, threshold)
 
-   Returns the classified version of `yhat` the decision margin
+   Returns the classified version of `yhat` given the decision margin
    `threshold`. This method assumes that `yhat` denotes a probability
    and will either return ``zero(yhat)`` if `yhat` is below
    `threshold`, or ``one(yhat)`` otherwise.
@@ -995,7 +995,7 @@ dimension of the matrix that denote the observations.
 .. function:: classify(yhat, encoding, [obsdim])
 
    If `yhat` is a vector (i.e. a single observation), this function
-   return the index of the element that has the largest value.
+   returns the index of the element that has the largest value.
    If `yhat` is a matrix, this function returns a vector of
    indices for each observation in `yhat`.
 
@@ -1083,7 +1083,7 @@ instead of a concrete instance.
 .. function:: classify(yhat, type, [obsdim])
 
    If `yhat` is a vector (i.e. a single observation), this function
-   return the index of the element that has the largest value.
+   returns the index of the element that has the largest value.
    If `yhat` is a matrix, this function returns a vector of
    indices for each observation in `yhat`.
 
@@ -1103,6 +1103,32 @@ instead of a concrete instance.
 
    :return: The classified version of `yhat`. This will either be
             an integer or a vector of indices.
+
+.. code-block:: jlcon
+
+   julia> pred_output = [0.1 0.4 0.3 0.2; 0.8 0.3 0.6 0.2; 0.1 0.3 0.1 0.6]
+   3×4 Array{Float64,2}:
+    0.1  0.4  0.3  0.2
+    0.8  0.3  0.6  0.2
+    0.1  0.3  0.1  0.6
+
+   julia> classify(pred_output, LabelEnc.OneOfK)
+   4-element Array{Int64,1}:
+    2
+    1
+    2
+    3
+
+   julia> classify(pred_output', LabelEnc.OneOfK, obsdim=1) # note the transpose
+   4-element Array{Int64,1}:
+    2
+    1
+    2
+    3
+
+   julia> classify([0.1,0.2,0.6,0.1], LabelEnc.OneOfK) # single observation
+   3
+
 
 We also provide a mutating version. This is mainly of interest
 when working with :func:`LabelEnc.OneOfK`, in which case broadcast
