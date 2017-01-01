@@ -8,6 +8,8 @@ In particular, these encodings will enable us to transform the targets
 from one representation into another without losing the ability to
 convert them back afterwards.
 
+.. _infer:
+
 Inferring the Encoding
 --------------------------------------
 
@@ -75,6 +77,8 @@ observations.
 
    julia> labelenc(Float32[0 1; 1 0; 0 1; 0 1], obsdim = 1)
    MLLabelUtils.LabelEnc.OneOfK{Float32,2}()
+
+.. _assert:
 
 Asserting Assumptions
 --------------------------------------
@@ -555,6 +559,9 @@ expected type, but simply that it is of the appropriate value.
     2
     1
 
+
+.. _convert:
+
 Converting between Encodings
 ------------------------------
 
@@ -741,6 +748,8 @@ specify the label-type and number of labels for the desired
 output-encoding. To that end we also allow the output-encoding
 to be specified in terms of an encoding-family (i.e. as ``DataType``).
 
+.. _obsdim:
+
 .. function:: convertlabel(dst_family, arr, [src_encoding], [obsdim])
 
    Converts the given array `arr` from the `src_encoding` into
@@ -885,6 +894,9 @@ into the original targets.
      1
      1
     -1
+
+
+.. _classify:
 
 Classifying Predictions
 -------------------------

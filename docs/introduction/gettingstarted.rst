@@ -278,9 +278,25 @@ utilized to solve them.
 
 **What MLLabelUtils can do**
 
-- TODO: Use OneOfK encoding in which each row denotes an observation
+- :ref:`Infer which encoding some classification targets use.
+  <infer>`
 
-**What MLLabelUtils can NOT do**
+- :ref:`Assert if some classification targets are of the encoding I
+  need them in. <assert>`
+
+- :ref:`Convert targets into a specific encoding that my model
+  requires. <convert>`
+
+- :ref:`Group observations according to their class-label.
+  <group>`
+
+- :ref:`Work with matrices in which the user can choose of the
+  rows or the columns denote the observations. <obsdim>`
+
+- :ref:`Classify model predictions into class labels appropriate
+  for the encoding of the targets. <classify>`
+
+**What MLLabelUtils can NOT do** (outsourced)
 
 - `Compute classification metrics, such as accuracy or a confusion
   matrix <https://github.com/JuliaML/MLMetrics.jl>`_

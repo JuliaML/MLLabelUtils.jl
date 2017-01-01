@@ -280,6 +280,7 @@ As such it has the same restrictions as :func:`label`.
    julia> nlabel([-1,1,1,-1,1])
    2
 
+.. _group:
 
 Mapping Labels to Observations
 ---------------------------------
