@@ -14,17 +14,19 @@ Abstract LabelEncoding
 We offer a number of different encodings that can best be
 described in terms of two orthogonal properties. The first
 property is the number of classes it represents, and the
-second properties is the number of array dimensions it works on
+second property is the number of array dimensions it operates on.
 
 .. type:: LabelEncoding{T,K,M}
 
    Abstract super-type of all label encodings. Mainly intended for
    dispatch. As such this type is not exported.
+   It defines three type-parameters that are useful to divide the
+   different encodings into groups.
 
    .. attribute:: T
 
       The label-type of the encoding, which specifies which concrete
-      type a label has.
+      type all label of that particular encoding have.
 
    .. attribute:: K
 
@@ -33,11 +35,12 @@ second properties is the number of array dimensions it works on
 
    .. attribute:: M
 
-      The number of array dimensions that the encoding works with.
-      For most encodings this will be ``1``, meaning that a target
-      array of that encoding is expected to be some vector.
-      In contrast to this the encoding :class:`OneOfK` has ``M=2``,
-      because it represents the target array as a matrix.
+      The number of array dimensions that the encoding works
+      with.  For most encodings this will be ``1``, meaning that
+      a target array of that encoding is expected to be some
+      vector. In contrast to this does the encoding
+      :class:`LabelEnc.OneOfK` defined ``M=2``, because it
+      represents the target array as a matrix.
 
 
 TrueFalse
@@ -56,8 +59,8 @@ TrueFalse
 
    It belongs to the family of binary vector-based encodings, and
    as such represents the targets as a vector that is using only
-   two distinct values for its elements. That mean that it is
-   per defintiona always binary and as such the number of labels
+   two distinct values for its elements. That implies that it is
+   per defintion always binary and as such the number of labels
    can be inferred at compile time.
 
    .. code-block:: jlcon
@@ -118,21 +121,21 @@ ZeroOne
 
    This type also comes with support for classification (see
    :func:`classify`).
-   It assumes that the raw prediction (often called
-   :math:`\hat{y}`) is in the closed interval :math:`[0, 1]` and
-   represents a the probabilty (or some degree of certainty) that
-   the observation is of the positive class. That means that in
-   order to classify a raw prediction to either positive or
-   negative, one needs to decide on a "threshold" parameter,
-   which determines at which degree of certainty a prediction is
-   "good enough" to classify as positive.
+   It assumes that the raw predictions (often called
+   :math:`\hat{y}`) are in the closed interval :math:`[0, 1]` and
+   represent something resembling a probabilty (or some degree of
+   certainty) that the observation is of the positive class. That
+   means that in order to classify a raw prediction to either
+   positive or negative, one needs to decide on a "threshold"
+   parameter, which determines at which degree of certainty a
+   prediction is "good enough" to classify as positive.
 
    .. attribute:: threshold
 
       A real number between 0 and 1 that defines the "cutoff"
       point for classification. Any prediction less than this
       value will be classified as negative and any prediction
-      equalt to or greater than this value will be classified as
+      equal to or greater than this value will be classified as
       a positive prediction.
 
 
@@ -179,7 +182,7 @@ MarginBased
    Denotes the classes as numeric values, for which ``1``
    corresponds to the positive class, and ``-1`` to the
    negative class. This type of encoding is very prominent
-   for margin based classifier, in particular SVMs.
+   for margin-based classifier, in particular SVMs.
 
    .. code-block:: jlcon
 
@@ -378,7 +381,7 @@ at the corresponding parts of the documentation.
     3.0
     4.0
 
-   julia> nlabel(LabelEnc.Indices(Val{5}))
+   julia> nlabel(LabelEnc.Indices(Val{5})) # type-stable
    5
 
 OneOfK
@@ -386,10 +389,10 @@ OneOfK
 
 .. type:: LabelEnc.OneOfK
 
-   A multi-class encoding that uses the one of the two matrix
-   dimensions to denote the label. In other words it uses an
-   indicater-encoding to explicitly state which label an
-   observation represents and which it does not represent, by
+   A multi-class encoding that uses one of the two matrix
+   dimensions to denote the label. More precisely other words it
+   uses an indicator-encoding to explicitly state what class an
+   observation represents and what it does not represent, by
    only setting one element of each observation to ``1`` and the
    rest to ``0``
 
