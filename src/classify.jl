@@ -117,4 +117,3 @@ function classify!{R<:Number,T<:LabelEnc.OneOfK}(buffer::AbstractVector, values:
     end
     buffer
 end
-

@@ -1,15 +1,10 @@
 # everything that should move to learnbase
 
-abstract LabelEncoding{T,K,M} # Eltype, Labelcount, Arraydimensions
-typealias BinaryLabelEncoding{T,M} LabelEncoding{T,2,M}
-typealias VectorLabelEncoding{T,K} LabelEncoding{T,K,1}
-typealias MatrixLabelEncoding{T,K} LabelEncoding{T,K,2}
-
-Base.size(::LabelEncoding) = ()
-Base.getindex(lm::LabelEncoding, idx) = lm
-
-Base.size{T<:LabelEncoding}(::Type{T}) = ()
-Base.getindex{T<:LabelEncoding}(t::Type{T}, idx) = t
+# Eltype, Labelcount, Arraydimensions
+abstract type LabelEncoding{T,K,M} end
+const BinaryLabelEncoding{T,M} = LabelEncoding{T,2,M}
+const VectorLabelEncoding{T,K} = LabelEncoding{T,K,1}
+const MatrixLabelEncoding{T,K} = LabelEncoding{T,K,2}
 
 """
     nlabel(obj) -> Int
@@ -364,4 +359,3 @@ frequencies for each label in `obj`
       1 => 3
 """
 function labelfreq! end
-
