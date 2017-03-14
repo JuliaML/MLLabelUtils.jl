@@ -38,9 +38,9 @@ module LabelEnc
     """
     immutable ZeroOne{T<:Number,R<:Number} <: BinaryLabelEncoding{T,1}
         cutoff::R
-        function ZeroOne(cutoff::R = R(0.5))
+        function (::Type{ZeroOne{T,R}}){T,R}(cutoff::R = R(0.5))
             @assert 0 <= cutoff <= 1
-            new(cutoff)
+            new{T,R}(cutoff)
         end
     end
     ZeroOne{T<:Number,R<:Number}(t::Type{T} = Float64, cutoff::R = 0.5) = ZeroOne{T,R}(cutoff)
@@ -93,9 +93,9 @@ module LabelEnc
     `T(2)` corresponds to the negative class.
     """
     immutable Indices{T<:Number,K} <: LabelEncoding{T,K,1}
-        function Indices()
+        function (::Type{Indices{T,K}}){T,K}()
             typeof(K) <: Int || throw(TypeError(:Indices,"constructor when checking typeof(K)",Type{Int},typeof(K)))
-            new()
+            new{T,K}()
         end
     end
     Indices{T,K}(::Type{T}, ::Type{Val{K}}) = Indices{T,K}()
@@ -113,9 +113,9 @@ module LabelEnc
     `K` elements is set to 1.
     """
     immutable OneOfK{T<:Number,K} <: LabelEncoding{T,K,2}
-        function OneOfK()
+        function (::Type{OneOfK{T,K}}){T,K}()
             typeof(K) <: Int || throw(TypeError(:OneOfK,"constructor when checking typeof(K)",Type{Int},typeof(K)))
-            new()
+            new{T,K}()
         end
     end
     OneOfK{T,K}(::Type{T}, ::Type{Val{K}}) = OneOfK{T,K}()
@@ -139,10 +139,10 @@ module LabelEnc
     immutable NativeLabels{T,K} <: LabelEncoding{T,K,1}
         label::Vector{T}
         invlabel::Dict{T,Int}
-        function NativeLabels(label::Vector{T})
+        function (::Type{NativeLabels{T,K}}){T,K}(label::Vector{T})
             typeof(K) <: Int || throw(TypeError(:NativeLabels,"constructor when checking typeof(K)",Type{Int},typeof(K)))
             @assert length(label) == length(unique(label)) == K
-            new(label, Dict(zip(label,1:K)))
+            new{T,K}(label, Dict(zip(label,1:K)))
         end
     end
     NativeLabels{T,K}(label::Vector{T}, ::Type{Val{K}}) = NativeLabels{T,K}(label)

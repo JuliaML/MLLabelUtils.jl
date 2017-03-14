@@ -3,6 +3,7 @@ module MLLabelUtils
 using StatsBase
 using LearnBase
 using MappedArrays
+using Compat
 
 export
 
