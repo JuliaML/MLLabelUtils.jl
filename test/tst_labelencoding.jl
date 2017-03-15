@@ -430,6 +430,9 @@ end
                 @test @inferred(label(lm)) == unique(targets)
                 @test eltype(@inferred(label(lm))) <: eltype(targets)
                 @test @inferred(nlabel(lm)) === length(unique(targets))
+
+                @test ind2label.(label2ind.(targets, lm), lm) == targets
+                @test ind2label.(Int16.(label2ind.(targets, lm)), lm) == targets
             end
         end
         @testset "multiclass"  begin
@@ -448,6 +451,9 @@ end
                 @test @inferred(label(lm)) == unique(targets)
                 @test eltype(@inferred(label(lm))) <: eltype(targets)
                 @test @inferred(nlabel(lm)) === length(unique(targets))
+
+                @test ind2label.(label2ind.(targets, lm), lm) == targets
+                @test ind2label.(Int16.(label2ind.(targets, lm)), lm) == targets
             end
         end
     end
@@ -530,4 +536,3 @@ end
         @test @inferred(islabelenc(dst_x, dst_lm, ObsDim.First())) == false
     end
 end
-

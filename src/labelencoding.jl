@@ -160,10 +160,10 @@ label2ind{T}(lbl::Union{Number,T}, lm::LabelEnc.OneOfK{T}) = Int(lbl)
 label2ind(lbl::AbstractVector, lm::LabelEnc.OneOfK) = indmax(lbl)
 
 # Query the label
-ind2label(i::Int, lm::BinaryLabelEncoding) = i == 1 ? ind2label(Val{1},lm) : ind2label(Val{2},lm)
-ind2label{T}(i::Int, ::LabelEnc.Indices{T}) = T(i)
-ind2label{T,K}(i::Int, ::LabelEnc.OneOfK{T,K}) = (x = zeros(T,K); x[i] = one(T); x)
-ind2label{T}(i::Int, lm::LabelEnc.NativeLabels{T}) = lm.label[i]
+ind2label(i::Integer, lm::BinaryLabelEncoding) = i == 1 ? ind2label(Val{1},lm) : ind2label(Val{2},lm)
+ind2label{T}(i::Integer, ::LabelEnc.Indices{T}) = T(i)
+ind2label{T,K}(i::Integer, ::LabelEnc.OneOfK{T,K}) = (x = zeros(T,K); x[i] = one(T); x)
+ind2label{T}(i::Integer, lm::LabelEnc.NativeLabels{T}) = lm.label[Int(i)]
 
 ind2label(::Type{Val{1}}, ::LabelEnc.TrueFalse) = true
 ind2label(::Type{Val{2}}, ::LabelEnc.TrueFalse) = false
@@ -362,4 +362,3 @@ end
 function labelenc{T<:Number}(targets::AbstractMatrix{T}, ::ObsDim.First)
     LabelEnc.OneOfK(T,size(targets,2))
 end
-
