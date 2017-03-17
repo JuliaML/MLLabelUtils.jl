@@ -25,7 +25,7 @@ classifier, such as SVMs, expect the targets to be in the set
 {1,−1}.
 
 This package provides the functionality needed to deal will these
-different scenarios in an efficient, consistent, and convention
+different scenarios in an efficient, consistent, and convenient
 manner. In particular, this library is designed with package
 developers in mind, that require their classification-targets to
 be in a specific format. To that end, the core focus of this
