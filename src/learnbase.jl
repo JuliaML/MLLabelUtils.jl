@@ -365,4 +365,3 @@ frequencies for each label in `obj`
       1 => 3
 """
 function labelfreq! end
-
