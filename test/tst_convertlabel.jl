@@ -59,6 +59,8 @@ _dst_eltype(::Type{Bool}, default) = default
     end
 end
 
+println("<HEARTBEAT>")
+
 @testset "convertlabelview multiclass" begin
     for (src_lm, src_x) in (
             (LabelEnc.Indices(Int32,3),Int32[1,2,3,2,2,1]),
@@ -86,13 +88,15 @@ end
     end
 end
 
+println("<HEARTBEAT>")
+
 @testset "convert binary" begin
     @test convertlabel(LabelEnc.MarginBased, UInt8[1,0,1], LabelEnc.ZeroOne()) == [0x1,0xff,0x1]
     for (src_lm, src_x) in (
             (LabelEnc.FuzzyBinary(),Any[true,0,1,-1,false,3]),
             (LabelEnc.FuzzyBinary(),Int32[1,0,1,0,0,1]),
             (LabelEnc.FuzzyBinary(),Float64[1,-1,1,-1,-1,1]),
-            (LabelEnc.TrueFalse(),[true,false,true,false,false,true]),
+            (LabelEnc.TrueFalse(),BitArray([true,false,true,false,false,true])),
             (LabelEnc.ZeroOne(),Int32[1,0,1,0,0,1]),
             (LabelEnc.ZeroOne(),Int64[1,0,1,0,0,1]),
             (LabelEnc.ZeroOne(),Float32[1,0,1,0,0,1]),
@@ -109,8 +113,8 @@ end
             (LabelEnc.OneOfK(Int8,2),Int8[1 0 1 0 0 1; 0 1 0 1 1 0]),
         )
         for (dst_lm, dst_x) in (
-                (LabelEnc.TrueFalse,[true,false,true,false,false,true]),
-                (LabelEnc.TrueFalse(),[true,false,true,false,false,true]),
+                (LabelEnc.TrueFalse,BitArray([true,false,true,false,false,true])),
+                (LabelEnc.TrueFalse(),BitArray([true,false,true,false,false,true])),
                 (LabelEnc.ZeroOne,(_dst_eltype(eltype(src_x),Float64))[1,0,1,0,0,1]),
                 (LabelEnc.ZeroOne(UInt8),UInt8[1,0,1,0,0,1]),
                 (LabelEnc.ZeroOne(Int),Int[1,0,1,0,0,1]),
@@ -135,8 +139,8 @@ end
                 if !(typeof(dst_lm) <: Vector)
                     @test @inferred(islabelenc(dst_x, dst_lm)) == true
                 end
-                if !(typeof(src_lm)<:LabelEnc.FuzzyBinary) && !((typeof(src_lm) <: LabelEnc.OneVsRest)$(typeof(dst_lm) <: LabelEnc.OneVsRest))
-                    res = if typeof(dst_lm) <: DataType || typeof(dst_lm) <: Array
+                if !(typeof(src_lm)<:LabelEnc.FuzzyBinary) && !xor((typeof(src_lm) <: LabelEnc.OneVsRest),(typeof(dst_lm) <: LabelEnc.OneVsRest))
+                    res = if typeof(dst_lm) <: Type || typeof(dst_lm) <: Array
                         convertlabel(dst_lm, src_x)
                     else
                         @inferred convertlabel(dst_lm, src_x)
@@ -144,7 +148,7 @@ end
                     @test typeof(res) <: typeof(dst_x)
                     @test res == dst_x
                 end
-                res = if typeof(src_lm) <: Vector && typeof(dst_lm) <: DataType && (dst_lm <: LabelEnc.Indices || dst_lm <: LabelEnc.OneOfK)
+                res = if typeof(src_lm) <: Vector && typeof(dst_lm) <: Type && (dst_lm <: LabelEnc.Indices || dst_lm <: LabelEnc.OneOfK)
                     # in this situation K can not be inferred
                     # this is because we neither specify in src or dst the number of labels at compile time
                     convertlabel(dst_lm, src_x, src_lm)
@@ -158,6 +162,7 @@ end
                 @test res == dst_x
             end
         end
+        println("<HEARTBEAT>")
     end
 end
 
@@ -186,14 +191,14 @@ end
                 if !(typeof(dst_lm) <: Vector)
                     @test @inferred(islabelenc(dst_x, dst_lm)) == true
                 end
-                res = if typeof(dst_lm) <: DataType || typeof(dst_lm) <: Array
+                res = if typeof(dst_lm) <: Type || typeof(dst_lm) <: Array
                     convertlabel(dst_lm, src_x)
                 else
                     @inferred convertlabel(dst_lm, src_x)
                 end
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x
-                res = if typeof(src_lm) <: Vector && typeof(dst_lm) <: DataType && (dst_lm <: LabelEnc.Indices || dst_lm <: LabelEnc.OneOfK)
+                res = if typeof(src_lm) <: Vector && typeof(dst_lm) <: Type && (dst_lm <: LabelEnc.Indices || dst_lm <: LabelEnc.OneOfK)
                     # in this situation K can not be inferred
                     # this is because we neither specify in src or dst the number of labels at compile time
                     convertlabel(dst_lm, src_x, src_lm)
@@ -210,13 +215,15 @@ end
     end
 end
 
+println("<HEARTBEAT>")
+
 @testset "binary OneOfK with and without ObsDim" begin
     x = [1 0 1 0 0 1; 0 1 0 1 1 0]
     xt = x'
     # From OneOfK
     for (dst_lm, dst_x) in (
-            (LabelEnc.TrueFalse,[true,false,true,false,false,true]),
-            (LabelEnc.TrueFalse(),[true,false,true,false,false,true]),
+            (LabelEnc.TrueFalse,BitArray([true,false,true,false,false,true])),
+            (LabelEnc.TrueFalse(),BitArray([true,false,true,false,false,true])),
             (LabelEnc.ZeroOne,(_dst_eltype(eltype(x),Float64))[1,0,1,0,0,1]),
             (LabelEnc.ZeroOne(UInt8),UInt8[1,0,1,0,0,1]),
             (LabelEnc.ZeroOne(Int),Int[1,0,1,0,0,1]),
@@ -234,7 +241,7 @@ end
             ([:a,:b],[:a,:b,:a,:b,:b,:a]),
         )
         @testset "$x -> ($dst_lm) $dst_x" begin
-            res = if typeof(dst_lm) <: DataType && (dst_lm <: LabelEnc.Indices || dst_lm <: LabelEnc.OneOfK)
+            res = if typeof(dst_lm) <: Type && (dst_lm <: LabelEnc.Indices || dst_lm <: LabelEnc.OneOfK)
                 convertlabel(dst_lm, x)
             else
                 @inferred convertlabel(dst_lm, x)
@@ -272,9 +279,10 @@ end
             @test res == dst_x
         end
     end
+    println("<HEARTBEAT>")
     # To OneOfK
     for (src_lm, src_x) in (
-            (LabelEnc.TrueFalse(),[true,false,true,false,false,true]),
+            (LabelEnc.TrueFalse(),BitArray([true,false,true,false,false,true])),
             (LabelEnc.ZeroOne(UInt8),UInt8[1,0,1,0,0,1]),
             (LabelEnc.ZeroOne(Int),Int[1,0,1,0,0,1]),
             (LabelEnc.ZeroOne(),[1.,0,1,0,0,1]),
@@ -325,6 +333,8 @@ end
     end
 end
 
+println("<HEARTBEAT>")
+
 @testset "multiclass OneOfK with and without ObsDim" begin
     x = [1 0 0 0 0 1; 0 1 0 1 0 0; 0 0 1 0 1 0]
     xt = x'
@@ -336,7 +346,7 @@ end
             ([:a,:b,:c],[:a,:b,:c,:b,:c,:a]),
         )
         @testset "$x -> ($dst_lm) $dst_x" begin
-            res = if typeof(dst_lm) <: DataType && (dst_lm <: LabelEnc.Indices || dst_lm <: LabelEnc.OneOfK)
+            res = if typeof(dst_lm) <: Type && (dst_lm <: LabelEnc.Indices || dst_lm <: LabelEnc.OneOfK)
                 convertlabel(dst_lm, x)
             else
                 @inferred convertlabel(dst_lm, x)
@@ -432,4 +442,3 @@ end
         end
     end
 end
-

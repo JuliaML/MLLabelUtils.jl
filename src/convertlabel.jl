@@ -48,6 +48,10 @@ function convertlabel{T,K,S}(dst::VectorLabelEncoding{T,K}, values::AbstractVect
     convertlabel.(dst, values, src)::Vector{T}
 end
 
+function convertlabel{K,S}(dst::VectorLabelEncoding{Bool,K}, values::AbstractVector, src::VectorLabelEncoding{S,K})
+    convertlabel.(dst, values, src)::BitVector
+end
+
 ## Generic types to objects
 
 function convertlabel{L<:LabelEncoding,T,K}(::Type{L}, values::AbstractArray{Bool}, src::LabelEncoding{T,K}, args...)
@@ -62,8 +66,16 @@ function convertlabel{T,K,M}(dst::LabelEncoding{T,K,M}, values::AbstractMatrix)
     convertlabel(dst, values, labelenc(values))::Array{T,M}
 end
 
+function convertlabel{K}(dst::LabelEncoding{Bool,K,1}, values::AbstractMatrix)
+    convertlabel(dst, values, labelenc(values))::BitVector
+end
+
 function convertlabel{T,K,M}(dst::LabelEncoding{T,K,M}, values::AbstractVector) # avoid method clash
     convertlabel(dst, values, labelenc(values))::Array{T,M}
+end
+
+function convertlabel{K}(dst::LabelEncoding{Bool,K,1}, values::AbstractVector) # avoid method clash
+    convertlabel(dst, values, labelenc(values))::BitVector
 end
 
 convertlabel(dst, values::AbstractArray) = convertlabel(dst, values, labelenc(values))
@@ -147,10 +159,13 @@ end
 
 ## From OneOfK
 
+@inline _new_vec{T}(::Type{T}, n) = Array{T}(n)
+@inline _new_vec(::Type{Bool}, n) = BitVector(n)
+
 function convertlabel{TD,T,TS,K}(dst::VectorLabelEncoding{TD,K}, values::AbstractMatrix{T}, src::LabelEnc.OneOfK{TS,K}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
     @assert size(values, 1) == K
     n = size(values, 2)
-    buffer = Array{TD}(n)
+    buffer = _new_vec(TD, n)
     @inbounds for i in 1:n
         tind = 1
         tmax = typemin(T)
@@ -169,7 +184,7 @@ end
 function convertlabel{TD,T,TS,K}(dst::VectorLabelEncoding{TD,K}, values::AbstractMatrix{T}, src::LabelEnc.OneOfK{TS,K}, ::ObsDim.First)
     @assert size(values, 2) == K
     n = size(values, 1)
-    buffer = Array{TD}(n)
+    buffer = _new_vec(TD, n)
     @inbounds for i in 1:n
         tind = 1
         tmax = typemin(T)
@@ -184,4 +199,3 @@ function convertlabel{TD,T,TS,K}(dst::VectorLabelEncoding{TD,K}, values::Abstrac
     end
     buffer
 end
-

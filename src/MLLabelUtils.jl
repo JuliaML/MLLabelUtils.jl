@@ -3,6 +3,7 @@ module MLLabelUtils
 using StatsBase
 using LearnBase
 using MappedArrays
+using Compat
 
 export
 
@@ -44,4 +45,3 @@ include("convertlabel.jl")
 include("labelmap.jl")
 
 end # module
-
