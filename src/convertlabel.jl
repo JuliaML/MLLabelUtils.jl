@@ -18,6 +18,9 @@ _lm{K}(::Type{LabelEnc.Indices}, ::Type, ::Type{Val{K}}) = LabelEnc.Indices(Val{
 _lm{D,K}(::Type{LabelEnc.OneOfK{D}},  ::Type, ::Type{Val{K}}) = LabelEnc.OneOfK(D,Val{K})
 _lm{D,K}(::Type{LabelEnc.Indices{D}}, ::Type, ::Type{Val{K}}) = LabelEnc.Indices(D,Val{K})
 
+@inline _array_type{T,N}(::Type{T},  ::Type{Val{N}}) = Array{T,N}
+@inline _array_type{N}(::Type{Bool}, ::Type{Val{N}}) = BitArray{N}
+
 ## Convert views for Vector based using MappedArrays.
 
 convertlabelview(dst::LabelEnc.FuzzyBinary, values, src::VectorLabelEncoding) = throw(MethodError(convertlabelview, (dst,values,src)))
@@ -45,7 +48,7 @@ function convertlabel{T,K,S}(dst::VectorLabelEncoding{T,K}, x, src::VectorLabelE
 end
 
 function convertlabel{T,K,S}(dst::VectorLabelEncoding{T,K}, values::AbstractVector, src::VectorLabelEncoding{S,K})
-    convertlabel.(dst, values, src)::Vector{T}
+    convertlabel.(dst, values, src)::_array_type(T,Val{1})
 end
 
 ## Generic types to objects
@@ -59,11 +62,11 @@ function convertlabel{L<:LabelEncoding,T,S,K}(::Type{L}, values::AbstractArray{T
 end
 
 function convertlabel{T,K,M}(dst::LabelEncoding{T,K,M}, values::AbstractMatrix)
-    convertlabel(dst, values, labelenc(values))::Array{T,M}
+    convertlabel(dst, values, labelenc(values))::_array_type(T,Val{M})
 end
 
 function convertlabel{T,K,M}(dst::LabelEncoding{T,K,M}, values::AbstractVector) # avoid method clash
-    convertlabel(dst, values, labelenc(values))::Array{T,M}
+    convertlabel(dst, values, labelenc(values))::_array_type(T,Val{M})
 end
 
 convertlabel(dst, values::AbstractArray) = convertlabel(dst, values, labelenc(values))
@@ -122,13 +125,13 @@ end
 ## To OneOfK
 
 function convertlabel{TD,TS,K}(dst::LabelEnc.OneOfK{TD,K}, values::AbstractMatrix, src::LabelEnc.OneOfK{TS,K}, ::LearnBase.ObsDimension)
-    Matrix{TD}(values)
+    _array_type(TD,Val{2})(values)
 end
 
 function convertlabel{T,K,S,KS}(dst::LabelEnc.OneOfK{T,K}, values::AbstractVector, src::VectorLabelEncoding{S,KS}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
     @assert KS <= K
     n = length(values)
-    buffer = zeros(T, K, n)
+    buffer = _array_type(T,Val{2})(zeros(T, K, n))
     @inbounds for i in 1:n
         buffer[label2ind(values[i], src), i] = one(T)
     end
@@ -138,7 +141,7 @@ end
 function convertlabel{T,K,S,KS}(dst::LabelEnc.OneOfK{T,K}, values::AbstractVector, src::VectorLabelEncoding{S,KS}, ::ObsDim.First)
     @assert KS <= K
     n = length(values)
-    buffer = zeros(T, n, K)
+    buffer = _array_type(T,Val{2})(zeros(T, n, K))
     @inbounds for i in 1:n
         buffer[i, label2ind(values[i], src)] = one(T)
     end
@@ -150,7 +153,7 @@ end
 function convertlabel{TD,T,TS,K}(dst::VectorLabelEncoding{TD,K}, values::AbstractMatrix{T}, src::LabelEnc.OneOfK{TS,K}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
     @assert size(values, 1) == K
     n = size(values, 2)
-    buffer = Array{TD}(n)
+    buffer = _array_type(TD,Val{1})(n)
     @inbounds for i in 1:n
         tind = 1
         tmax = typemin(T)
@@ -169,7 +172,7 @@ end
 function convertlabel{TD,T,TS,K}(dst::VectorLabelEncoding{TD,K}, values::AbstractMatrix{T}, src::LabelEnc.OneOfK{TS,K}, ::ObsDim.First)
     @assert size(values, 2) == K
     n = size(values, 1)
-    buffer = Array{TD}(n)
+    buffer = _array_type(TD,Val{1})(n)
     @inbounds for i in 1:n
         tind = 1
         tmax = typemin(T)
@@ -184,4 +187,3 @@ function convertlabel{TD,T,TS,K}(dst::VectorLabelEncoding{TD,K}, values::Abstrac
     end
     buffer
 end
-

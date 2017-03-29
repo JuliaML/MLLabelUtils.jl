@@ -60,4 +60,3 @@ labelfreq(A::AbstractMatrix) = throw(ArgumentError("labelfreq not supported for 
 labelenc(x::Dict) = labelenc(label(x))
 nlabel(x::Dict) = length(keys(x))
 label(x::Dict) = _arrange_label(collect(keys(x)))
-
