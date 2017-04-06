@@ -96,12 +96,12 @@ end
 
 ## OneOfK obsdim kw specified
 
-convertlabel(dst, values, src; obsdim = LearnBase.default_obsdim(values)) = convertlabel(dst, values, src, LearnBase.obs_dim(obsdim))
+convertlabel(dst, values, src; obsdim = LearnBase.default_obsdim(values)) = convertlabel(dst, values, src, convert(LearnBase.ObsDimension,obsdim))
 
-convertlabel(dst, values; obsdim = LearnBase.default_obsdim(values)) = convertlabel(dst, values, labelenc(values), LearnBase.obs_dim(obsdim))
+convertlabel(dst, values; obsdim = LearnBase.default_obsdim(values)) = convertlabel(dst, values, labelenc(values), convert(LearnBase.ObsDimension,obsdim))
 
 function convertlabel(dst, values::AbstractMatrix; obsdim = LearnBase.default_obsdim(values))
-    nobsdim = LearnBase.obs_dim(obsdim)
+    nobsdim = convert(LearnBase.ObsDimension,obsdim)
     convertlabel(dst, values, labelenc(values, nobsdim), nobsdim)
 end
 

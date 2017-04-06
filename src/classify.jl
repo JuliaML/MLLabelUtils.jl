@@ -57,11 +57,11 @@ function classify(values::AbstractVector, lm::LabelEnc.OneOfK)
 end
 
 function classify!{T<:AbstractVector}(buffer::T, values::AbstractMatrix, lm; obsdim = LearnBase.default_obsdim(values))
-    classify!(buffer, values, lm, LearnBase.obs_dim(obsdim))::T
+    classify!(buffer, values, lm, convert(LearnBase.ObsDimension,obsdim))::T
 end
 
 function classify(values::AbstractMatrix, lm; obsdim = LearnBase.default_obsdim(values))
-    classify(values, lm, LearnBase.obs_dim(obsdim))
+    classify(values, lm, convert(LearnBase.ObsDimension,obsdim))
 end
 
 function classify!(buffer, values::AbstractMatrix, lm::LabelEnc.OneOfK, obsdim::LearnBase.ObsDimension)

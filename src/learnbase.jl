@@ -47,7 +47,7 @@ label and the second element the negative label.
 label(itr) = _arrange_label(unique(itr))
 label(A::AbstractVector) = _arrange_label(unique(A))
 label{T,N}(A::AbstractArray{T,N}) = throw(MethodError(label, (A,)))
-label{T<:Union{Number,Bool}}(A::AbstractMatrix{T}; obsdim = LearnBase.default_obsdim(A)) = label(A, LearnBase.obs_dim(obsdim))
+label{T<:Union{Number,Bool}}(A::AbstractMatrix{T}; obsdim = LearnBase.default_obsdim(A)) = label(A, convert(LearnBase.ObsDimension,obsdim))
 label{T<:Union{Number,Bool}}(A::AbstractMatrix{T}, ::Union{ObsDim.Constant{2},ObsDim.Last}) = collect(1:size(A,1))
 label{T<:Union{Number,Bool}}(A::AbstractMatrix{T}, ::ObsDim.First) = collect(1:size(A,2))
 
