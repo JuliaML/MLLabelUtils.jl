@@ -241,7 +241,7 @@ islabelenc{T<:Number}(targets::AbstractVector{T}, ::Type{LabelEnc.Indices})    =
 islabelenc{T}(targets::AbstractVector{T}, lm::LabelEnc.NativeLabels{T}) = all(x ∈ lm.label for x in targets)
 
 function islabelenc{T<:Union{Bool,Number}}(targets::AbstractMatrix{T}, lm; obsdim = LearnBase.default_obsdim(targets))
-    islabelenc(targets, lm, LearnBase.obs_dim(obsdim))
+    islabelenc(targets, lm, convert(LearnBase.ObsDimension,obsdim))
 end
 
 function islabelenc{T<:Union{Bool,Number}}(targets::AbstractMatrix{T}, lm::LabelEnc.OneOfK, obsdim)
@@ -352,7 +352,7 @@ end
 
 # TODO: Multilabel (Matrix as targets)
 function labelenc{T<:Number}(targets::AbstractMatrix{T}; obsdim = LearnBase.default_obsdim(targets))
-    labelenc(targets, LearnBase.obs_dim(obsdim))
+    labelenc(targets, convert(LearnBase.ObsDimension,obsdim))
 end
 
 function labelenc{T<:Number}(targets::AbstractMatrix{T}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
