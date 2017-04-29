@@ -161,8 +161,10 @@ end
         @test_throws TypeError LabelEnc.NativeLabels{Int,2.}([1,2])
         @test_throws AssertionError LabelEnc.NativeLabels{Int,3}([1,2])
         @test_throws AssertionError LabelEnc.NativeLabels([1,2],Val{3})
+        @test typeof(LabelEnc.NativeLabels(1:3)) <: LabelEnc.NativeLabels{Int,3}
         @test typeof(LabelEnc.NativeLabels([5,2,3])) <: LabelEnc.NativeLabels{Int,3}
         @test typeof(LabelEnc.NativeLabels([:a,:b,:c,:d])) <: LabelEnc.NativeLabels{Symbol,4}
+        @test typeof(@inferred(LabelEnc.NativeLabels{Int,3}(1:3))) <: LabelEnc.NativeLabels{Int,3}
         @test typeof(@inferred(LabelEnc.NativeLabels{Int,3}([5,2,3]))) <: LabelEnc.NativeLabels{Int,3}
         @test typeof(@inferred(LabelEnc.NativeLabels([5,2,3],Val{3}))) <: LabelEnc.NativeLabels{Int,3}
         @test typeof(@inferred(LabelEnc.NativeLabels{Symbol,4}([:a,:b,:c,:d]))) <: LabelEnc.NativeLabels{Symbol,4}
@@ -423,7 +425,7 @@ end
                 @test poslabel(lm) === T(3)
                 @test neglabel(lm) === T(-2)
             end
-            for targets in ([:yes,:no,:yes], ["yes","yes","no"], [3,-2], [1.4,1.3])
+            for targets in ([:yes,:no,:yes], ["yes","yes","no"], 3:-3:0, [3,-2], [1.4,1.3])
                 lm = labelenc(targets)
                 @test labeltype(lm) <: eltype(targets)
                 @test typeof(lm) <: MLLabelUtils.BinaryLabelEncoding
@@ -438,13 +440,13 @@ end
                 @test @inferred(isneglabel(:nix, lm)) === false
                 @test @inferred(isneglabel(1, lm)) === false
                 @test @inferred(isneglabel(2, lm)) === false
-                @test lm.label == unique(targets)
-                @test @inferred(label(lm)) == unique(targets)
+                @test lm.label == collect(unique(targets))
+                @test @inferred(label(lm)) == collect(unique(targets))
                 @test eltype(@inferred(label(lm))) <: eltype(targets)
                 @test @inferred(nlabel(lm)) === length(unique(targets))
 
-                @test ind2label.(label2ind.(targets, lm), lm) == targets
-                @test ind2label.(Int16.(label2ind.(targets, lm)), lm) == targets
+                @test ind2label.(label2ind.(targets, lm), lm) == collect(targets)
+                @test ind2label.(Int16.(label2ind.(targets, lm)), lm) == collect(targets)
             end
         end
         @testset "multiclass"  begin
