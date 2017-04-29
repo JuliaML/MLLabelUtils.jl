@@ -145,8 +145,9 @@ module LabelEnc
             new(label, Dict(zip(label,1:K)))
         end
     end
-    NativeLabels{T,K}(label::Vector{T}, ::Type{Val{K}}) = NativeLabels{T,K}(label)
-    NativeLabels(label::Vector) = NativeLabels(label, Val{length(label)})
+    (::Type{NativeLabels{T,K}}){T,K}(label::AbstractVector{T}) = NativeLabels{T,K}(collect(label))
+    NativeLabels{T,K}(label::AbstractVector{T}, ::Type{Val{K}}) = NativeLabels{T,K}(label)
+    NativeLabels(label) = NativeLabels(label, Val{length(label)})
 
 end # submodule
 
