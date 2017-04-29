@@ -154,7 +154,7 @@ _ambiguous() = throw(ArgumentError("Can't infer the label meaning because argume
 
 # Query the index
 label2ind(lbl, lm::BinaryLabelEncoding) = isposlabel(lbl, lm) ? 1 : 2
-label2ind{T}(lbl::T, lm::LabelEnc.NativeLabels{T}) = Int(lm.invlabel[lbl])
+label2ind{T}(lbl, lm::LabelEnc.NativeLabels{T}) = Int(lm.invlabel[lbl])
 label2ind{T}(lbl::Union{Number,T}, lm::LabelEnc.Indices{T}) = Int(lbl)
 label2ind{T}(lbl::Union{Number,T}, lm::LabelEnc.OneOfK{T}) = Int(lbl)
 label2ind(lbl::AbstractVector, lm::LabelEnc.OneOfK) = indmax(lbl)

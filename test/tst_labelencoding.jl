@@ -405,6 +405,18 @@ end
 
     @testset "NativeLabels" begin
         @testset "binary" begin
+            let targets = split("yes yes no")
+                lm = labelenc(targets)
+                @test labeltype(lm) <: eltype(targets)
+                @test typeof(lm) <: MLLabelUtils.BinaryLabelEncoding
+                @test typeof(lm) <: LabelEnc.NativeLabels{eltype(targets),length(unique(targets))}
+                @test_throws KeyError label2ind(:yes, lm)
+                @test_throws KeyError label2ind(2, lm)
+                @test @inferred(label2ind("yes", lm)) === 1
+                @test @inferred(label2ind("no", lm)) === 2
+                @test @inferred(ind2label(1, lm)) == "yes"
+                @test @inferred(ind2label(2, lm)) == "no"
+            end
             for T in (Float64,Int,Float32)
                 lm = labelenc(T[-2,3])
                 @test labeltype(lm) <: T
