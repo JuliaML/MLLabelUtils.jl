@@ -148,6 +148,8 @@ module LabelEnc
     (::Type{NativeLabels{T,K}}){T,K}(label::AbstractVector{T}) = NativeLabels{T,K}(collect(label))
     NativeLabels{T,K}(label::AbstractVector{T}, ::Type{Val{K}}) = NativeLabels{T,K}(label)
     NativeLabels(label) = NativeLabels(label, Val{length(label)})
+    Base.hash(a::NativeLabels, h::UInt) = hash(a.label, hash(:NativeLabels, h))
+    Base.:(==)(a::NativeLabels, b::NativeLabels) = isequal(a.label, b.label) && true
 
 end # submodule
 

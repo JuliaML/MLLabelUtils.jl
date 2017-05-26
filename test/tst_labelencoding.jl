@@ -409,6 +409,7 @@ end
         @testset "binary" begin
             let targets = split("yes yes no")
                 lm = labelenc(targets)
+                @test lm == labelenc(split("yes yes no"))
                 @test labeltype(lm) <: eltype(targets)
                 @test typeof(lm) <: MLLabelUtils.BinaryLabelEncoding
                 @test typeof(lm) <: LabelEnc.NativeLabels{eltype(targets),length(unique(targets))}
