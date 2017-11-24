@@ -1,5 +1,10 @@
-using MLLabelUtils
 using Base.Test
+
+# check for ambiguities
+refambs = detect_ambiguities(Base, Core)
+using MLLabelUtils
+ambs = detect_ambiguities(MLLabelUtils, Base, Core)
+@test length(setdiff(ambs, refambs)) <= 15 # these are fine for now
 
 tests = [
     "tst_labelencoding.jl"

@@ -53,6 +53,10 @@ end
 
 ## Generic types to objects
 
+function convertlabel{L<:LabelEncoding,T,K}(::Type{L}, x::T, src::LabelEncoding{T,K})
+    convertlabel(_lm(L,Val{K}), x, src)
+end
+
 function convertlabel{L<:LabelEncoding,T,K}(::Type{L}, values::AbstractArray{Bool}, src::LabelEncoding{T,K}, args...)
     convertlabel(_lm(L,Val{K}), values, src, args...)
 end
