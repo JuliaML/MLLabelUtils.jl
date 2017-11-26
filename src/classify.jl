@@ -1,26 +1,26 @@
 ## ZeroOne
 
-function classify{T<:Number}(value::T, cutoff::Number)
-    value >= cutoff ? one(T) : zero(T)
+function classify(value::T, cutoff::Number) where {T<:Number}
+    value >= cutoff ? T(1) : T(0)
 end
 
-function classify{T<:Number}(value::T, ::Type{LabelEnc.ZeroOne})
+function classify(value::Number, ::Type{LabelEnc.ZeroOne})
     classify(value, 0.5)
 end
 
-function classify{T<:Number,R}(value::T, lm::LabelEnc.ZeroOne{R})
+function classify(value::Number, lm::LabelEnc.ZeroOne{R}) where {R}
     R(classify(value, lm.cutoff))
 end
 
 ## Margin
 
-_sign{T}(value::T)::T = signbit(value) ? -one(T) : one(T)
+_sign(value::T) where {T} = ifelse(signbit(value), T(-1), T(1))::T
 
-function classify{T<:Number}(value::T, ::Type{LabelEnc.MarginBased})
+function classify(value::Number, ::Type{LabelEnc.MarginBased})
     _sign(value)
 end
 
-function classify{T<:Number,R}(value::T, lm::LabelEnc.MarginBased{R})
+function classify(value::Number, lm::LabelEnc.MarginBased{R}) where {R}
     R(_sign(value))
 end
 
@@ -31,16 +31,16 @@ function classify!(buffer::AbstractVector, values::AbstractVector, lm)
     buffer
 end
 
-function classify{T}(values::AbstractVector{T}, cutoff::Number)
+function classify(values::AbstractVector{T}, cutoff::Number) where {T}
     classify.(values, cutoff)::Vector{T}
 end
 
 for KIND in (:(LabelEnc.MarginBased), :(LabelEnc.ZeroOne))
     @eval begin
-        function classify{T}(values::AbstractVector{T}, ::Type{($KIND)})
+        function classify(values::AbstractVector{T}, ::Type{($KIND)}) where {T}
             classify.(values, ($KIND))::Vector{T}
         end
-        function classify{T,L<:($KIND)}(values::AbstractVector{T}, lm::L)
+        function classify(values::AbstractVector{T}, lm::L) where {T,L<:($KIND)}
             classify.(values, lm)::Vector{labeltype(L)}
         end
     end
@@ -48,7 +48,7 @@ end
 
 ## OneOfK
 
-function classify{T<:LabelEnc.OneOfK}(values::AbstractVector, ::Type{T})
+function classify(values::AbstractVector, ::Type{<:LabelEnc.OneOfK})
     indmax(values)
 end
 
@@ -56,29 +56,47 @@ function classify(values::AbstractVector, lm::LabelEnc.OneOfK)
     classify(values, typeof(lm))
 end
 
-function classify!{T<:AbstractVector}(buffer::T, values::AbstractMatrix, lm; obsdim = LearnBase.default_obsdim(values))
+function classify!(buffer::T,
+                   values::AbstractMatrix,
+                   lm;
+                   obsdim = LearnBase.default_obsdim(values)
+                  ) where {T<:AbstractVector}
     classify!(buffer, values, lm, convert(LearnBase.ObsDimension,obsdim))::T
 end
 
-function classify(values::AbstractMatrix, lm; obsdim = LearnBase.default_obsdim(values))
+function classify(values::AbstractMatrix,
+                  lm;
+                  obsdim = LearnBase.default_obsdim(values))
     classify(values, lm, convert(LearnBase.ObsDimension,obsdim))
 end
 
-function classify!(buffer, values::AbstractMatrix, lm::LabelEnc.OneOfK, obsdim::LearnBase.ObsDimension)
+function classify!(buffer,
+                   values::AbstractMatrix,
+                   lm::LabelEnc.OneOfK,
+                   obsdim::LearnBase.ObsDimension)
     classify!(buffer, values, typeof(lm), obsdim)
 end
 
-function classify(values::AbstractMatrix, lm::LabelEnc.OneOfK, obsdim::LearnBase.ObsDimension)
+function classify(values::AbstractMatrix,
+                  lm::LabelEnc.OneOfK,
+                  obsdim::LearnBase.ObsDimension)
     classify(values, typeof(lm), obsdim)
 end
 
-function classify{T<:LabelEnc.OneOfK}(values::AbstractMatrix, ::Type{T}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
+function classify(values::AbstractMatrix,
+                  ::Type{T},
+                  ::Union{ObsDim.Last,ObsDim.Constant{2}}
+                 ) where {T<:LabelEnc.OneOfK}
     K, N = size(values)
     buffer = Vector{Int}(N)
     classify!(buffer, values, T, ObsDim.Last())
 end
 
-function classify!{R<:Number,T<:LabelEnc.OneOfK}(buffer::AbstractVector, values::AbstractMatrix{R}, ::Type{T}, ::Union{ObsDim.Last,ObsDim.Constant{2}})
+function classify!(buffer::AbstractVector,
+                   values::AbstractMatrix{R},
+                   ::Type{<:LabelEnc.OneOfK},
+                   ::Union{ObsDim.Last,ObsDim.Constant{2}}
+                  ) where {R<:Number}
     K, N = size(values)
     @assert length(buffer) == N
     @inbounds for n in 1:N
@@ -96,13 +114,20 @@ function classify!{R<:Number,T<:LabelEnc.OneOfK}(buffer::AbstractVector, values:
     buffer
 end
 
-function classify{T<:LabelEnc.OneOfK}(values::AbstractMatrix, ::Type{T}, ::ObsDim.First)
+function classify(values::AbstractMatrix,
+                  ::Type{T},
+                  ::ObsDim.First
+                 ) where {T<:LabelEnc.OneOfK}
     N, K = size(values)
     buffer = Vector{Int}(N)
     classify!(buffer, values, T, ObsDim.First())
 end
 
-function classify!{R<:Number,T<:LabelEnc.OneOfK}(buffer::AbstractVector, values::AbstractMatrix{R}, ::Type{T}, ::ObsDim.First)
+function classify!(buffer::AbstractVector,
+                   values::AbstractMatrix{R},
+                   ::Type{<:LabelEnc.OneOfK},
+                   ::ObsDim.First
+                  ) where {R<:Number}
     N, K = size(values)
     tmax = fill(typemin(R),N)
     @assert length(buffer) == N

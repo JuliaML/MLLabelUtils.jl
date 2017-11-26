@@ -14,11 +14,11 @@ Returns the number of labels represented in the given object `obj`.
     julia> nlabel([:yes,:no,:yes,:yes])
     2
 """
-nlabel{T<:BinaryLabelEncoding}(::Type{T}) = 2
-nlabel{T,K,M}(::Type{LabelEncoding{T,K,M}}) = Int(K)
+nlabel(::Type{<:BinaryLabelEncoding}) = 2
+nlabel(::Type{LabelEncoding{T,K,M}}) where {T,K,M} = Int(K)
 nlabel(::Type{Any}) = throw(ArgumentError("number of labels could not be inferred for the given type"))
-nlabel{T}(::Type{T}) = nlabel(supertype(T))
-nlabel{T,K}(::LabelEncoding{T,K}) = Int(K)
+nlabel(::Type{T}) where {T} = nlabel(supertype(T))
+nlabel(::LabelEncoding{T,K}) where {T,K} = Int(K)
 nlabel(itr) = length(label(itr))
 
 """
@@ -41,15 +41,15 @@ label and the second element the negative label.
 """
 label(itr) = _arrange_label(unique(itr))
 label(A::AbstractVector) = _arrange_label(unique(A))
-label{T,N}(A::AbstractArray{T,N}) = throw(MethodError(label, (A,)))
-label{T<:Union{Number,Bool}}(A::AbstractMatrix{T}; obsdim = LearnBase.default_obsdim(A)) = label(A, convert(LearnBase.ObsDimension,obsdim))
-label{T<:Union{Number,Bool}}(A::AbstractMatrix{T}, ::Union{ObsDim.Constant{2},ObsDim.Last}) = collect(1:size(A,1))
-label{T<:Union{Number,Bool}}(A::AbstractMatrix{T}, ::ObsDim.First) = collect(1:size(A,2))
+label(A::AbstractArray{T,N}) where {T,N} = throw(MethodError(label, (A,)))
+label(A::AbstractMatrix{<:Union{Number,Bool}}; obsdim = LearnBase.default_obsdim(A)) = label(A, convert(LearnBase.ObsDimension,obsdim))
+label(A::AbstractMatrix{<:Union{Number,Bool}}, ::Union{ObsDim.Constant{2},ObsDim.Last}) = collect(1:size(A,1))
+label(A::AbstractMatrix{<:Union{Number,Bool}}, ::ObsDim.First) = collect(1:size(A,2))
 
 # make sure pos label is first
 _arrange_label(lbl::Vector) = lbl
-_arrange_label{T<:Bool}(lbl::Vector{T}) = [true,false]
-function _arrange_label{T<:Number}(lbl::Vector{T})
+_arrange_label(lbl::Vector{<:Bool}) = [true,false]
+function _arrange_label(lbl::Vector{T}) where {T<:Number}
     if length(lbl) == 2
         if minimum(lbl) == 0 && maximum(lbl) == 1
             lbl[1] = T(1)
@@ -65,18 +65,17 @@ function _arrange_label{T<:Number}(lbl::Vector{T})
     lbl
 end
 
-
 """
-    labeltype{T<:LabelEncoding}(::Type{T}) -> DataType
+    labeltype(::Type{<:LabelEncoding}) -> DataType
 
 Determine the type of the labels represented by the label encoding `T`
 """
-labeltype{T}(::Type{MatrixLabelEncoding{T}}) = T
-labeltype{T}(::Type{VectorLabelEncoding{T}}) = T
-labeltype{T,K,M}(::Type{LabelEncoding{T,K,M}}) = T
+labeltype(::Type{MatrixLabelEncoding{T}}) where {T} = T
+labeltype(::Type{VectorLabelEncoding{T}}) where {T} = T
+labeltype(::Type{LabelEncoding{T,K,M}}) where {T,K,M} = T
 labeltype(::Type{Any}) = Any
-labeltype{T}(::Type{T}) = labeltype(supertype(T))
-labeltype{T}(lm::LabelEncoding{T}) = T
+labeltype(::Type{T}) where {T} = labeltype(supertype(T))
+labeltype(lm::LabelEncoding{T}) where {T} = T
 
 """
     ind2label(index, encoding)

@@ -1,10 +1,10 @@
 ## labelmap
 
-function labelmap!{T}(dict::Dict{T,Vector{Int}}, idx::Int, elem)
+function labelmap!(dict::Dict{T,Vector{Int}}, idx::Int, elem) where {T}
     labelmap!(dict, idx, T(elem))
 end
 
-function labelmap!{T}(dict::Dict{T,Vector{Int}}, idx::Int, elem::T)
+function labelmap!(dict::Dict{T,Vector{Int}}, idx::Int, elem::T) where {T}
     if !haskey(dict, elem)
         push!(dict, elem => [idx])
     else
@@ -13,14 +13,14 @@ function labelmap!{T}(dict::Dict{T,Vector{Int}}, idx::Int, elem::T)
     dict
 end
 
-function labelmap!{T,S}(dict::Dict{T,Vector{Int}}, idx::AbstractVector{Int}, itr::S)
+function labelmap!(dict::Dict{T,Vector{Int}}, idx::AbstractVector{Int}, itr::S) where {T,S}
     for (i, elem) in zip(idx, itr)
         labelmap!(dict, i, elem)
     end
     dict
 end
 
-function labelmap{T}(itr::T)
+function labelmap(itr::T) where {T}
     dict = Dict{eltype(T),Vector{Int}}()
     for (idx, elem) in enumerate(itr)
         labelmap!(dict, idx, elem)
@@ -30,25 +30,25 @@ end
 
 ## labelfreq
 
-function labelfreq!{T}(dict::Dict{T,Int}, elem)
+function labelfreq!(dict::Dict{T,Int}, elem) where {T}
     labelfreq!(dict, T(elem))
 end
 
-function labelfreq!{T}(dict::Dict{T,Int}, elem::T)
+function labelfreq!(dict::Dict{T,Int}, elem::T) where {T}
     cnt = get(dict, elem, 0)
     dict[elem] = cnt + 1
     dict
 end
 
-function labelfreq!{T}(dict::Dict{T,Int}, iter::AbstractVector)
+function labelfreq!(dict::Dict{T,Int}, iter::AbstractVector) where {T}
     for elem in iter
         labelfreq!(dict, T(elem))
     end
     dict
 end
 
-labelfreq{T}(itr::T) = countmap(itr)::Dict{eltype(T),Int}
-labelfreq{T}(dict::Dict{T,Vector{Int}}) = Dict(k => length(v) for (k,v) in dict)::Dict{T,Int}
+labelfreq(itr::T) where {T} = countmap(itr)::Dict{eltype(T),Int}
+labelfreq(dict::Dict{T,Vector{Int}})  where {T} = Dict(k => length(v) for (k,v) in dict)::Dict{T,Int}
 
 ## Errors
 
