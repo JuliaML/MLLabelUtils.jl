@@ -47,7 +47,7 @@ function labelfreq!(dict::Dict{T,Int}, iter::AbstractVector) where {T}
     dict
 end
 
-labelfreq(itr::T) where {T} = countmap(itr)::Dict{eltype(T),Int}
+labelfreq(itr::T) where {T} = countmap(itr, alg = :dict)::Dict{eltype(T),Int}
 labelfreq(dict::Dict{T,Vector{Int}})  where {T} = Dict(k => length(v) for (k,v) in dict)::Dict{T,Int}
 
 ## Errors
