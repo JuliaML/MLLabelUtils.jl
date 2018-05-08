@@ -245,6 +245,21 @@ julia> classify([0.1,0.2,0.6,0.1], LabelEnc.OneOfK) # single observation
 # 3
 ```
 
+
+`NativeLabels` maps between data of an arbitary type (e.g. Strings) and the other label types (Normally `LabelEnc.Indices{Int}` for an integer index).
+When using it, you should always save the encoding in a variable, and pass it as an argument to `convertlabel`;
+as otherwise the encoding will be inferred each time, so will normally encode differently for different inputs.
+
+```julia
+julia> enc = labelenc(["copper", "tin", "gold"])
+MLLabelUtils.LabelEnc.NativeLabels{String,3}(String["copper", "tin", "gold"], Dict("gold"=>3,"copper"=>1,"tin"=>2))
+
+julia> convertlabel(LabelEnc.Indices, ["gold", "copper"], enc)
+2-element Array{Int64,1}:
+ 3
+ 1
+```
+
 ## Documentation
 
 For a much more detailed treatment check out the
