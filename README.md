@@ -245,6 +245,20 @@ julia> classify([0.1,0.2,0.6,0.1], LabelEnc.OneOfK) # single observation
 # 3
 ```
 
+
+`NativeLabels` maps between data of an arbitary type (e.g. Strings) and an integer index:
+
+```julia
+julia> enc = labelenc(["a", "b", "c", "d"])
+MLLabelUtils.LabelEnc.NativeLabels{String,4}(String["a", "b", "c", "d"], Dict("c"=>3,"b"=>2,"a"=>1,"d"=>4))
+
+julia> ind2label(3, enc)
+"c"
+
+julia> label2ind("c", enc)
+3
+```
+
 ## Documentation
 
 For a much more detailed treatment check out the
