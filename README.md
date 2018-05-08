@@ -183,12 +183,12 @@ be inferred each time, so will normally encode differently for different inputs.
 
 ```julia
 julia> enc = LabelEnc.NativeLabels(["copper", "tin", "gold"])
-MLLabelUtils.LabelEnc.NativeLabels{String,3}(String["copper", "tin", "gold"], Dict("gold"=>3,"copper"=>1,"tin"=>2))
+# MLLabelUtils.LabelEnc.NativeLabels{String,3}(...)
 
 julia> convertlabel(LabelEnc.Indices, ["gold", "copper"], enc)
-2-element Array{Int64,1}:
- 3
- 1
+# 2-element Array{Int64,1}:
+#  3
+#  1
 ```
 
 Encodings such as `ZeroOne`, `MarginBased`, and `OneOfK` also provide
