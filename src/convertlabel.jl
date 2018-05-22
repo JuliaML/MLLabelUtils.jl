@@ -53,7 +53,7 @@ end
 
 ## Generic types to objects
 
-function convertlabel(::Type{L}, x::T, src::LabelEncoding{T,K}) where {L<:LabelEncoding,T,K}
+function convertlabel(::Type{L}, x, src::LabelEncoding{T,K}) where {L<:LabelEncoding,T,K}
     convertlabel(_lm(L,Val{K}), x, src)
 end
 

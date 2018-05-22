@@ -443,7 +443,10 @@ println("<HEARTBEAT>")
     end
 end
 
-@testset "special examples" begin
+@testset "special NativeLabels-Indices examples" begin
     enc = LabelEnc.NativeLabels(["a","b","c","d"])
     @test @inferred(convertlabel(LabelEnc.Indices, "c", enc)) == 3
+
+    csub = SubString("c",1,1)
+    @test @inferred(convertlabel(LabelEnc.Indices, csub, enc)) == 3
 end
