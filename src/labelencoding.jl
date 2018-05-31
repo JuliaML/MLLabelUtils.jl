@@ -56,7 +56,7 @@ module LabelEnc
     """
     struct ZeroOne{T<:Number,R<:Number} <: BinaryLabelEncoding{T,1}
         cutoff::R
-        function (::Type{ZeroOne{T,R}})(cutoff::R = R(0.5)) where {T,R}
+        function ZeroOne{T,R}(cutoff::R = R(0.5)) where {T,R}
             @assert 0 <= cutoff <= 1
             new{T,R}(cutoff)
         end
@@ -111,7 +111,7 @@ module LabelEnc
     `T(2)` corresponds to the negative class.
     """
     struct Indices{T<:Number,K} <: LabelEncoding{T,K,1}
-        function (::Type{Indices{T,K}})() where {T,K}
+        function Indices{T,K}() where {T,K}
             typeof(K) <: Int || throw(TypeError(:Indices,"constructor when checking typeof(K)",Type{Int},typeof(K)))
             new{T,K}()
         end
@@ -131,7 +131,7 @@ module LabelEnc
     `K` elements is set to 1.
     """
     struct OneOfK{T<:Number,K} <: LabelEncoding{T,K,2}
-        function (::Type{OneOfK{T,K}})() where {T,K}
+        function OneOfK{T,K}() where {T,K}
             typeof(K) <: Int || throw(TypeError(:OneOfK,"constructor when checking typeof(K)",Type{Int},typeof(K)))
             new{T,K}()
         end
@@ -157,13 +157,13 @@ module LabelEnc
     struct NativeLabels{T,K} <: LabelEncoding{T,K,1}
         label::Vector{T}
         invlabel::Dict{T,Int}
-        function (::Type{NativeLabels{T,K}})(label::Vector{T}) where {T,K}
+        function NativeLabels{T,K}(label::Vector{T}) where {T,K}
             typeof(K) <: Int || throw(TypeError(:NativeLabels,"constructor when checking typeof(K)",Type{Int},typeof(K)))
             @assert length(label) == length(unique(label)) == K
             new{T,K}(label, Dict(zip(label,1:K)))
         end
     end
-    (::Type{NativeLabels{T,K}})(label::AbstractVector{T}) where {T,K} = NativeLabels{T,K}(collect(label))
+    NativeLabels{T,K}(label::AbstractVector{T}) where {T,K} = NativeLabels{T,K}(collect(label))
     NativeLabels(label::AbstractVector{T}, ::Type{Val{K}})  where {T,K} = NativeLabels{T,K}(label)
     NativeLabels(label) = NativeLabels(label, Val{length(label)})
     Base.hash(a::NativeLabels, h::UInt) = hash(a.label, hash(:NativeLabels, h))
