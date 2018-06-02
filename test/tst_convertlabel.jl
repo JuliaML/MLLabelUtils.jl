@@ -1,5 +1,5 @@
 _dst_eltype(any, default) = default
-_dst_eltype{T<:Number}(::Type{T}, default) = T
+_dst_eltype(::Type{T}, default) where {T<:Number} = T
 _dst_eltype(::Type{Bool}, default) = default
 
 @testset "convertlabelview binary" begin
