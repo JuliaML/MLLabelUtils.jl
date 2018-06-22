@@ -154,18 +154,31 @@ module LabelEnc
     represents the positive label and the second element the negative
     label.
     """
-    struct NativeLabels{T,K} <: LabelEncoding{T,K,1}
+    struct NativeLabels{T,K,F} <: LabelEncoding{T,K,1}
+        getfallbacklabel::F
         label::Vector{T}
         invlabel::Dict{T,Int}
-        function NativeLabels{T,K}(label::Vector{T}) where {T,K}
+        function NativeLabels{T,K,F}(getfallbacklabel::F, label::Vector{T}) where {T,K,F}
             typeof(K) <: Int || throw(TypeError(:NativeLabels,"constructor when checking typeof(K)",Type{Int},typeof(K)))
             @assert length(label) == length(unique(label)) == K
-            new{T,K}(label, Dict(zip(label,1:K)))
+            new{T,K,F}(getfallbacklabel, label, Dict(zip(label,1:K)))
         end
     end
-    NativeLabels{T,K}(label::AbstractVector{T}) where {T,K} = NativeLabels{T,K}(collect(label))
-    NativeLabels(label::AbstractVector{T}, ::Type{Val{K}})  where {T,K} = NativeLabels{T,K}(label)
-    NativeLabels(label) = NativeLabels(label, Val{length(label)})
+    const default_getfallbacklabel = throw ∘ KeyError
+
+    NativeLabels{T,K}(getfallbacklabel::F, label::Vector{T}) where {T,K,F} = NativeLabels{T,K,F}(getfallbacklabel, label)
+    NativeLabels{T,K}(label::Vector{T}) where {T,K} = NativeLabels{T,K}(default_getfallbacklabel, label)
+
+    NativeLabels{T,K}(getfallbacklabel::F, label::AbstractVector{T}) where {F,T,K} = NativeLabels{T,K}(getfallbacklabel, collect(label))
+    NativeLabels{T,K}(label::AbstractVector{T}) where {T,K} = NativeLabels{T,K}(default_getfallbacklabel, label)
+    
+    NativeLabels(getfallbacklabel::F, label::AbstractVector{T}, ::Type{Val{K}})  where {F,T,K} = NativeLabels{T,K}(getfallbacklabel, label)
+    NativeLabels(label::AbstractVector, ::Type{Val{K}})  where {K} = NativeLabels(default_getfallbacklabel, label, Val{K})
+    
+    NativeLabels(getfallbacklabel, label) = NativeLabels(getfallbacklabel, label, Val{length(label)})
+    NativeLabels(label) = NativeLabels(default_getfallbacklabel, label)
+
+
     Base.hash(a::NativeLabels, h::UInt) = hash(a.label, hash(:NativeLabels, h))
     Base.:(==)(a::NativeLabels, b::NativeLabels) = isequal(a.label, b.label)
 
@@ -175,10 +188,15 @@ _ambiguous() = throw(ArgumentError("Can't infer the label meaning because argume
 
 # Query the index
 label2ind(lbl, lm::BinaryLabelEncoding) = ifelse(isposlabel(lbl, lm), 1, 2)
-label2ind(lbl, lm::LabelEnc.NativeLabels) = Int(lm.invlabel[lbl])
 label2ind(lbl::Union{Number,T}, lm::LabelEnc.Indices{T}) where {T} = Int(lbl)
 label2ind(lbl::Union{Number,T}, lm::LabelEnc.OneOfK{T}) where {T} = Int(lbl)
 label2ind(lbl::AbstractVector, lm::LabelEnc.OneOfK) = indmax(lbl)
+function label2ind(lbl, lm::LabelEnc.NativeLabels)
+    get(lm.invlabel, lbl) do
+        fallback = lm.getfallbacklabel(lbl)
+        label2ind(fallback, lm)
+    end |> Int
+end
 
 # Query the label
 ind2label(i::Integer, lm::BinaryLabelEncoding) = ifelse(i == 1, ind2label(Val{1},lm), ind2label(Val{2},lm))
