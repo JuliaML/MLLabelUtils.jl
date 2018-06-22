@@ -164,7 +164,7 @@ module LabelEnc
             new{T,K,F}(getfallbacklabel, label, Dict(zip(label,1:K)))
         end
     end
-    const default_getfallbacklabel = throw ∘ KeyError
+    const default_getfallbacklabel = identity # by default leave label as is, so parent can change
 
     NativeLabels{T,K}(getfallbacklabel::F, label::Vector{T}) where {T,K,F} = NativeLabels{T,K,F}(getfallbacklabel, label)
     NativeLabels{T,K}(fallbacklabel::T, label::Vector{T}) where {T,K} = NativeLabels{T,K}(oov->fallbacklabel, label)
@@ -185,10 +185,15 @@ module LabelEnc
     Base.hash(a::NativeLabels, h::UInt) = hash(a.getfallbacklabel, hash(a.label, hash(:NativeLabels, h)))
     Base.:(==)(a::NativeLabels, b::NativeLabels) = isequal(a.label, b.label) && isequal(a.getfallbacklabel, b.getfallbacklabel)
 
-    with_fallbacklabel(lbl::T, enc::NativeLabels{T}) where {T} = with_fallbacklabel(oov->lbl, enc)
-    with_fallbacklabel(getfallbacklabel, enc::NativeLabels) = NativeLabels(getfallbacklabel, enc.label)
-
 end # submodule
+
+
+standardize_label(lbl, lm::LabelEnc.NativeLabels) = haskey(lm.invlabel, lbl) ? lbl : lm.getfallbacklabel(lbl)
+
+#TODO export these if they are even a good idea
+with_fallbacklabel(fallbacklabel::T, lm::LabelEnc.NativeLabels{T}) where {T} = with_fallbacklabel(oov->fallbacklabel, lm)
+with_fallbacklabel(getfallbacklabel, lm::LabelEnc.NativeLabels) = LabelEnc.NativeLabels(getfallbacklabel, lm.label)
+
 
 _ambiguous() = throw(ArgumentError("Can't infer the label meaning because argument types or values are ambiguous. Please specify the desired LabelEncoding manually."))
 
@@ -198,10 +203,8 @@ label2ind(lbl::Union{Number,T}, lm::LabelEnc.Indices{T}) where {T} = Int(lbl)
 label2ind(lbl::Union{Number,T}, lm::LabelEnc.OneOfK{T}) where {T} = Int(lbl)
 label2ind(lbl::AbstractVector, lm::LabelEnc.OneOfK) = indmax(lbl)
 function label2ind(lbl, lm::LabelEnc.NativeLabels)
-    get(lm.invlabel, lbl) do
-        fallback = lm.getfallbacklabel(lbl)
-        label2ind(fallback, lm)
-    end |> Int
+    std_lbl = standardize_label(lbl, lm)
+    Int(lm.invlabel[std_lbl])
 end
 
 # Query the label
@@ -249,13 +252,7 @@ isposlabel(value::T, ::LabelEnc.MarginBased) where {T<:Number} = (sign(value) >=
 isposlabel(value::Number, lm::LabelEnc.Indices{T,2}) where {T} = value == poslabel(lm)
 isposlabel(value::Number, lm::LabelEnc.OneOfK{T,2})  where {T} = value == T(1)
 isposlabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} = indmax(value) == 1
-function isposlabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T}
-    try
-        label2ind(value, lm) == label2ind(poslabel(lm),lm)
-    catch
-        false
-    end
-end
+isposlabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} = standardize_label(value, lm) == poslabel(lm)
 
 # What it means to be a negative label
 isneglabel(value, ::LabelEnc.FuzzyBinary) = _ambiguous()
@@ -271,13 +268,7 @@ isneglabel(value::T, ::LabelEnc.MarginBased) where {T<:Number} = (sign(value) ==
 isneglabel(value::Number, lm::LabelEnc.Indices{T,2}) where {T} = value == neglabel(lm)
 isneglabel(value::Number, lm::LabelEnc.OneOfK{T,2})  where {T} = value == T(2)
 isneglabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} = indmax(value) == 2
-function isneglabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T}
-    try
-        label2ind(value, lm) == label2ind(neglabel(lm),lm)
-    catch
-        false
-    end
-end
+isneglabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} = standardize_label(value, lm) == neglabel(lm)
 
 # Check if the encoding is appropriate
 islabelenc(targets::AbstractArray, args...) = false
@@ -296,16 +287,11 @@ islabelenc(targets::AbstractVector{T}, ::LabelEnc.Indices{T,K})     where {T<:Nu
 islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.Indices{T}}) where {T<:Number}   = all(0 < x && isinteger(x) for x in targets)
 islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.Indices})    where {T<:Number}   = all(0 < x && isinteger(x) for x in targets)
 
-function islabelenc(targets::AbstractVector{T}, lm::LabelEnc.NativeLabels{T}; strict=true) where {T}
+function islabelenc(targets::AbstractVector, lm::LabelEnc.NativeLabels; strict=true)
     if strict
-        all(x ∈ lm.label for x in targets)
+        all(haskey(lm.invlabel, x) for x in targets)
     else
-        try
-            label2ind(targets, lm)
-            true
-        catch
-            false
-        end
+        all(haskey(lm.invlabel, standardize_label(x, lm)) for x in targets)
     end
 end
 
