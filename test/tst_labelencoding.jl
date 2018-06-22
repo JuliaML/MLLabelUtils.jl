@@ -170,6 +170,14 @@ end
         @test typeof(@inferred(LabelEnc.NativeLabels{Symbol,4}([:a,:b,:c,:d]))) <: LabelEnc.NativeLabels{Symbol,4}
         @test typeof(@inferred(LabelEnc.NativeLabels([:a,:b,:c,:d],Val{4}))) <: LabelEnc.NativeLabels{Symbol,4}
         @test typeof(@inferred(LabelEnc.NativeLabels([1,2],Val{2}))) <: MLLabelUtils.BinaryLabelEncoding
+
+        @test typeof(LabelEnc.NativeLabels(oov->0, 0:3)) <: LabelEnc.NativeLabels{Int,4}
+        @test typeof(LabelEnc.NativeLabels(oov->:oov, [:oov, :a,:b,:c,:d])) <: LabelEnc.NativeLabels{Symbol,5}
+        @test typeof(@inferred(LabelEnc.NativeLabels(oov->1, [1,2],Val{2}))) <: MLLabelUtils.BinaryLabelEncoding
+        
+        @test typeof(LabelEnc.NativeLabels(0, 0:3)) <: LabelEnc.NativeLabels{Int,4}
+        @test typeof(LabelEnc.NativeLabels(:oov, [:oov, :a,:b,:c,:d])) <: LabelEnc.NativeLabels{Symbol,5}
+        @test typeof(@inferred(LabelEnc.NativeLabels(1, [1,2],Val{2}))) <: MLLabelUtils.BinaryLabelEncoding
     end
 end
 
@@ -469,6 +477,38 @@ end
 
                 @test ind2label.(label2ind.(targets, lm), lm) == targets
                 @test ind2label.(Int16.(label2ind.(targets, lm)), lm) == targets
+            end
+        end
+        
+        @testset "fallback" begin
+            @testset "binary" begin
+                @testset "neg" begin
+                    lm = LabelEnc.NativeLabels(:no, [:yes, :no])
+                    @test @inferred(isposlabel(:red, lm)) === false
+                    @test @inferred(isneglabel(:blue, lm)) === true
+
+                    @test ind2label.(label2ind.([:yes, :no, :fish, :yes], lm), lm) == ind2label.(label2ind.([:yes, :no, :no, :yes], lm), lm)
+                end
+                @testset "pos" begin
+                    lm = LabelEnc.NativeLabels(oov->:yes, [:yes, :no])
+                    @test @inferred(isposlabel(:red, lm)) === true
+                    @test @inferred(isneglabel(:blue, lm)) === false
+
+                    @test ind2label.(label2ind.([:yes, :no, :fish, :yes], lm), lm) == ind2label.(label2ind.([:yes, :no, :yes, :yes], lm), lm)
+                end
+            end
+            @testset "multiclass" begin
+                lm = LabelEnc.NativeLabels(["yes","no","maybe"]) do oov_lbl
+                    new_lbl = lowercase(oov_lbl)
+                    new_lbl == oov_lbl && throw(KeyError(oov_lbl)) # no change so still won't match
+                    new_lbl
+                end
+
+                @test_throws KeyError label2ind("red", lm)
+                @test_throws KeyError label2ind("BLUE", lm)
+                @test  label2ind("Maybe", lm) == label2ind("maybe", lm)
+
+                @test ind2label.(label2ind.(["yes", "maybe", "NO", "no"], lm), lm) == ind2label.(label2ind.(["yes", "maybe", "no", "no"], lm), lm)
             end
         end
     end
