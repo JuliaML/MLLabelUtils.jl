@@ -158,7 +158,7 @@ module LabelEnc
         getfallbacklabel::F
         label::Vector{T}
         invlabel::Dict{T,Int}
-        function NativeLabels{T,K,F}(getfallbacklabel::F, label::Vector{T}) where {T,K,F}
+        function NativeLabels{T,K,F}(getfallbacklabel::F, label::Vector{T}) where {T,K,F<:Function}
             typeof(K) <: Int || throw(TypeError(:NativeLabels,"constructor when checking typeof(K)",Type{Int},typeof(K)))
             @assert length(label) == length(unique(label)) == K
             new{T,K,F}(getfallbacklabel, label, Dict(zip(label,1:K)))
@@ -166,34 +166,27 @@ module LabelEnc
     end
     const default_getfallbacklabel = identity # by default leave label as is, so parent can change
 
-    NativeLabels{T,K}(getfallbacklabel::F, label::Vector{T}) where {T,K,F} = NativeLabels{T,K,F}(getfallbacklabel, label)
-    NativeLabels{T,K}(fallbacklabel::T, label::Vector{T}) where {T,K} = NativeLabels{T,K}(oov->fallbacklabel, label)
+    NativeLabels{T,K}(getfallbacklabel::F, label::Vector{T}) where {T,K,F<:Function} = NativeLabels{T,K,F}(getfallbacklabel, label)
+    NativeLabels{T,K}(fallbacklabel, label::Vector{T}) where {T,K} = NativeLabels{T,K}(oov->fallbacklabel, label)
     NativeLabels{T,K}(label::Vector{T}) where {T,K} = NativeLabels{T,K}(default_getfallbacklabel, label)
 
     NativeLabels{T,K}(getfallbacklabel::F, label::AbstractVector{T}) where {F,T,K} = NativeLabels{T,K}(getfallbacklabel, collect(label))
     NativeLabels{T,K}(fallbacklabel::T, label::AbstractVector{T}) where {T,K} = NativeLabels{T,K}(oov->fallbacklabel, label)
     NativeLabels{T,K}(label::AbstractVector{T}) where {T,K} = NativeLabels{T,K}(default_getfallbacklabel, label)
     
-    NativeLabels(getfallbacklabel::F, label::AbstractVector{T}, ::Type{Val{K}})  where {F,T,K} = NativeLabels{T,K}(getfallbacklabel, label)
-    NativeLabels(fallbacklabel::T, label::AbstractVector{T}, ::Type{Val{K}})  where {T,K} = NativeLabels(oov->fallbacklabel, label, Val{K})
+    NativeLabels(getfallbacklabel::Function, label::AbstractVector{T}, ::Type{Val{K}})  where {T,K} = NativeLabels{T,K}(getfallbacklabel, label)
+    NativeLabels(fallbacklabel, label::AbstractVector{T}, ::Type{Val{K}})  where {T,K} = NativeLabels(oov->fallbacklabel, label, Val{K})
     NativeLabels(label::AbstractVector, ::Type{Val{K}})  where {K} = NativeLabels(default_getfallbacklabel, label, Val{K})
     
     NativeLabels(getfallbacklabel, label) = NativeLabels(getfallbacklabel, label, Val{length(label)})
     NativeLabels(label) = NativeLabels(default_getfallbacklabel, label)
-
 
     Base.hash(a::NativeLabels, h::UInt) = hash(a.getfallbacklabel, hash(a.label, hash(:NativeLabels, h)))
     Base.:(==)(a::NativeLabels, b::NativeLabels) = isequal(a.label, b.label) && isequal(a.getfallbacklabel, b.getfallbacklabel)
 
 end # submodule
 
-
 standardize_label(lbl, lm::LabelEnc.NativeLabels) = haskey(lm.invlabel, lbl) ? lbl : lm.getfallbacklabel(lbl)
-
-#TODO export these if they are even a good idea
-with_fallbacklabel(fallbacklabel::T, lm::LabelEnc.NativeLabels{T}) where {T} = with_fallbacklabel(oov->fallbacklabel, lm)
-with_fallbacklabel(getfallbacklabel, lm::LabelEnc.NativeLabels) = LabelEnc.NativeLabels(getfallbacklabel, lm.label)
-
 
 _ambiguous() = throw(ArgumentError("Can't infer the label meaning because argument types or values are ambiguous. Please specify the desired LabelEncoding manually."))
 
