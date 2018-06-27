@@ -149,10 +149,33 @@ module LabelEnc
 
     Represents arbitrary class labels by storing the possible values
     as a member variable.
+    
+    Constructor `LabelEnc.NativeLabels([fallbacklabel], classlabels)`
+     - `classlabels` is a collection of labels that are allowed by the
+       encoding. Each one representing a class.
+     - `fallbacklabel` is an optional first argument.
+         - It is either:
+            - a value from `classlabels` which is used to encode any observed
+              label that does not occur in `classlabels`
+            - or; a function which takes as its input a label which does not 
+              occur in `classlabels` and returns one that does.
+         - This can be used for example to handle out of vocabulary words in NLP 
+           as in `LabelEnc.NativeLabels("<OOV>", [red", "green", blue", ..., "<OOV>"])`
+         - Or to standardize inputs: as in 
+           ```
+            LabelEnc.NativeLabels([..., v"0.5.2", v"0.6.0", v"0.6.1", ....]) do oov
+                # Discard build and prerelease fields, `v"0.7.0-beta.18"`->`v"0.7.0"`
+                VersionNumber(oov.major, oov.minor, oov.patch)
+            end
+           ```
+
 
     In a binary setting the first element of the stored class labels
     represents the positive label and the second element the negative
     label.
+    In a multiclass setting, the labels will `convertenc` to 
+    `LabelEnc.Indices`  using their position in the `label` argument 
+    to the constructor.
     """
     struct NativeLabels{T,K,F} <: LabelEncoding{T,K,1}
         getfallbacklabel::F
