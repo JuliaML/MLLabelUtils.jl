@@ -143,42 +143,85 @@ module LabelEnc
 
 
     """
-        LabelEnc.NativeLabels{T,K} <: LabelEncoding{T,K,1}
+        LabelEnc.NativeLabels{T,K,F} <: LabelEncoding{T,K,1}
 
     A vector-based multi-label encoding with a arbitrary labeltype.
 
     Represents arbitrary class labels by storing the possible values
     as a member variable.
+    
+    Constructor `LabelEnc.NativeLabels([fallbacklabel], classlabels)`
+     - `classlabels` is a collection of labels that are allowed by the
+       encoding. Each one representing a class.
+     - `fallbacklabel` is an optional first argument.
+         - It is either:
+            - a value from `classlabels` which is used to encode any observed
+              label that does not occur in `classlabels`
+            - or; a function which takes as its input a label which does not 
+              occur in `classlabels` and returns one that does.
+         - This can be used for example to handle out of vocabulary words in NLP 
+           as in `LabelEnc.NativeLabels("<OOV>", [red", "green", blue", ..., "<OOV>"])`
+         - Or to standardize inputs: as in 
+           ```
+            LabelEnc.NativeLabels([..., v"0.5.2", v"0.6.0", v"0.6.1", ....]) do oov
+                # Discard build and prerelease fields, `v"0.7.0-beta.18"`->`v"0.7.0"`
+                VersionNumber(oov.major, oov.minor, oov.patch)
+            end
+           ```
+
 
     In a binary setting the first element of the stored class labels
     represents the positive label and the second element the negative
     label.
+    In a multiclass setting, the labels will `convertenc` to 
+    `LabelEnc.Indices`  using their position in the `label` argument 
+    to the constructor.
     """
-    struct NativeLabels{T,K} <: LabelEncoding{T,K,1}
+    struct NativeLabels{T,K,F} <: LabelEncoding{T,K,1}
+        getfallbacklabel::F
         label::Vector{T}
         invlabel::Dict{T,Int}
-        function NativeLabels{T,K}(label::Vector{T}) where {T,K}
+        function NativeLabels{T,K,F}(getfallbacklabel::F, label::Vector{T}) where {T,K,F<:Function}
             typeof(K) <: Int || throw(TypeError(:NativeLabels,"constructor when checking typeof(K)",Type{Int},typeof(K)))
             @assert length(label) == length(unique(label)) == K
-            new{T,K}(label, Dict(zip(label,1:K)))
+            new{T,K,F}(getfallbacklabel, label, Dict(zip(label,1:K)))
         end
     end
-    NativeLabels{T,K}(label::AbstractVector{T}) where {T,K} = NativeLabels{T,K}(collect(label))
-    NativeLabels(label::AbstractVector{T}, ::Type{Val{K}})  where {T,K} = NativeLabels{T,K}(label)
-    NativeLabels(label) = NativeLabels(label, Val{length(label)})
-    Base.hash(a::NativeLabels, h::UInt) = hash(a.label, hash(:NativeLabels, h))
-    Base.:(==)(a::NativeLabels, b::NativeLabels) = isequal(a.label, b.label)
+    const default_getfallbacklabel = identity # by default leave label as is, so parent can change
+
+    NativeLabels{T,K}(getfallbacklabel::F, label::Vector{T}) where {T,K,F<:Function} = NativeLabels{T,K,F}(getfallbacklabel, label)
+    NativeLabels{T,K}(fallbacklabel, label::Vector{T}) where {T,K} = NativeLabels{T,K}(oov->fallbacklabel, label)
+    NativeLabels{T,K}(label::Vector{T}) where {T,K} = NativeLabels{T,K}(default_getfallbacklabel, label)
+
+    NativeLabels{T,K}(getfallbacklabel::F, label::AbstractVector{T}) where {F,T,K} = NativeLabels{T,K}(getfallbacklabel, collect(label))
+    NativeLabels{T,K}(fallbacklabel::T, label::AbstractVector{T}) where {T,K} = NativeLabels{T,K}(oov->fallbacklabel, label)
+    NativeLabels{T,K}(label::AbstractVector{T}) where {T,K} = NativeLabels{T,K}(default_getfallbacklabel, label)
+    
+    NativeLabels(getfallbacklabel::Function, label::AbstractVector{T}, ::Type{Val{K}})  where {T,K} = NativeLabels{T,K}(getfallbacklabel, label)
+    NativeLabels(fallbacklabel, label::AbstractVector{T}, ::Type{Val{K}})  where {T,K} = NativeLabels(oov->fallbacklabel, label, Val{K})
+    NativeLabels(label::AbstractVector, ::Type{Val{K}})  where {K} = NativeLabels(default_getfallbacklabel, label, Val{K})
+    
+    NativeLabels(getfallbacklabel, label) = NativeLabels(getfallbacklabel, label, Val{length(label)})
+    NativeLabels(label) = NativeLabels(default_getfallbacklabel, label)
+
+    Base.hash(a::NativeLabels, h::UInt) = hash(a.getfallbacklabel, hash(a.label, hash(:NativeLabels, h)))
+    Base.:(==)(a::NativeLabels, b::NativeLabels) = isequal(a.label, b.label) && isequal(a.getfallbacklabel, b.getfallbacklabel)
 
 end # submodule
+
+standardize_label(lbl, lm::LabelEnc.NativeLabels) = haskey(lm.invlabel, lbl) ? lbl : lm.getfallbacklabel(lbl)
 
 _ambiguous() = throw(ArgumentError("Can't infer the label meaning because argument types or values are ambiguous. Please specify the desired LabelEncoding manually."))
 
 # Query the index
 label2ind(lbl, lm::BinaryLabelEncoding) = ifelse(isposlabel(lbl, lm), 1, 2)
-label2ind(lbl, lm::LabelEnc.NativeLabels) = Int(lm.invlabel[lbl])
 label2ind(lbl::Union{Number,T}, lm::LabelEnc.Indices{T}) where {T} = Int(lbl)
 label2ind(lbl::Union{Number,T}, lm::LabelEnc.OneOfK{T}) where {T} = Int(lbl)
 label2ind(lbl::AbstractVector, lm::LabelEnc.OneOfK) = indmax(lbl)
+function label2ind(lbl, lm::LabelEnc.NativeLabels)
+    std_lbl = standardize_label(lbl, lm)
+    Int(lm.invlabel[std_lbl])
+end
 
 # Query the label
 ind2label(i::Integer, lm::BinaryLabelEncoding) = ifelse(i == 1, ind2label(Val{1},lm), ind2label(Val{2},lm))
@@ -225,7 +268,7 @@ isposlabel(value::T, ::LabelEnc.MarginBased) where {T<:Number} = (sign(value) >=
 isposlabel(value::Number, lm::LabelEnc.Indices{T,2}) where {T} = value == poslabel(lm)
 isposlabel(value::Number, lm::LabelEnc.OneOfK{T,2})  where {T} = value == T(1)
 isposlabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} = indmax(value) == 1
-isposlabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} = value == poslabel(lm)
+isposlabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} = standardize_label(value, lm) == poslabel(lm)
 
 # What it means to be a negative label
 isneglabel(value, ::LabelEnc.FuzzyBinary) = _ambiguous()
@@ -241,9 +284,9 @@ isneglabel(value::T, ::LabelEnc.MarginBased) where {T<:Number} = (sign(value) ==
 isneglabel(value::Number, lm::LabelEnc.Indices{T,2}) where {T} = value == neglabel(lm)
 isneglabel(value::Number, lm::LabelEnc.OneOfK{T,2})  where {T} = value == T(2)
 isneglabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} = indmax(value) == 2
-isneglabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} = value == neglabel(lm)
+isneglabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} = standardize_label(value, lm) == neglabel(lm)
 
-# Check if the encoding is approriate
+# Check if the encoding is appropriate
 islabelenc(targets::AbstractArray, args...) = false
 islabelenc(targets::AbstractVector{T}, ::LabelEnc.FuzzyBinary)       where {T<:Union{Number,Bool}} = true
 islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.FuzzyBinary}) where {T<:Union{Number,Bool}} = true
@@ -259,7 +302,14 @@ islabelenc(targets::AbstractVector{T}, lm::LabelEnc.OneVsRest{T})   where {T}   
 islabelenc(targets::AbstractVector{T}, ::LabelEnc.Indices{T,K})     where {T<:Number,K} = all(0 < x <= T(K) && isinteger(x) for x in targets)
 islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.Indices{T}}) where {T<:Number}   = all(0 < x && isinteger(x) for x in targets)
 islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.Indices})    where {T<:Number}   = all(0 < x && isinteger(x) for x in targets)
-islabelenc(targets::AbstractVector{T}, lm::LabelEnc.NativeLabels{T}) where {T} = all(x ∈ lm.label for x in targets)
+
+function islabelenc(targets::AbstractVector, lm::LabelEnc.NativeLabels; strict=true)
+    if strict
+        all(haskey(lm.invlabel, x) for x in targets)
+    else
+        all(haskey(lm.invlabel, standardize_label(x, lm)) for x in targets)
+    end
+end
 
 function islabelenc(targets::AbstractMatrix{<:Union{Bool,Number}}, lm; obsdim = LearnBase.default_obsdim(targets))
     islabelenc(targets, lm, convert(LearnBase.ObsDimension,obsdim))
