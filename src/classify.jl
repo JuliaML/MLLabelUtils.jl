@@ -49,7 +49,7 @@ end
 ## OneOfK
 
 function classify(values::AbstractVector, ::Type{<:LabelEnc.OneOfK})
-    indmax(values)
+    argmax(values)
 end
 
 function classify(values::AbstractVector, lm::LabelEnc.OneOfK)
