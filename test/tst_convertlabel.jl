@@ -295,7 +295,7 @@ println("<HEARTBEAT>")
             (LabelEnc.NativeLabels([:a,:b]),[:a,:b,:a,:b,:b,:a]),
         )
         for (dst_lm, dst_x) in (
-                (LabelEnc.OneOfK,Array{(_dst_eltype(eltype(src_x),Int))}(x)),
+                (LabelEnc.OneOfK,Array{_dst_eltype(eltype(src_x),Int)}(x)),
                 (LabelEnc.OneOfK{Float32},Array{Float32}(x)),
                 (LabelEnc.OneOfK(Bool,2),BitArray(x)),
              )
@@ -312,7 +312,10 @@ println("<HEARTBEAT>")
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x
                 res = @inferred convertlabel(dst_lm, src_x, src_lm, ObsDim.First())
-                @test typeof(res) <: typeof(dst_x')
+                # TODO in julia 0.7 we take transposition seriously:
+                #   typeof(res) == BitArray{2}
+                #   typeof(dst_x') == LinearAlgebra.Adjoint{Bool,BitArray{2}}
+                @test_broken typeof(res) <: typeof(dst_x')
                 @test res == dst_x'
 
                 # kw obsdim
@@ -323,10 +326,10 @@ println("<HEARTBEAT>")
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x
                 res = convertlabel(dst_lm, src_x, obsdim=1)
-                @test typeof(res) <: typeof(dst_x')
+                @test_broken typeof(res) <: typeof(dst_x')
                 @test res == dst_x'
                 res = convertlabel(dst_lm, src_x, src_lm, obsdim=1)
-                @test typeof(res) <: typeof(dst_x')
+                @test_broken typeof(res) <: typeof(dst_x')
                 @test res == dst_x'
             end
         end
@@ -387,10 +390,10 @@ println("<HEARTBEAT>")
     # To OneOfK
     @testset "implicit NativeLabels" begin
         res = @inferred convertlabel(LabelEnc.OneOfK(Int,3), [:a,:b,:c,:b,:c,:a], [:a,:b,:c], ObsDim.Constant(1))
-        @test typeof(res) <: typeof(x')
+        @test_broken typeof(res) <: typeof(x')
         @test res == x'
         res = convertlabel(LabelEnc.OneOfK, [:a,:b,:c,:b,:c,:a], [:a,:b,:c], ObsDim.Constant(1))
-        @test typeof(res) <: typeof(x')
+        @test_broken typeof(res) <: typeof(x')
         @test res == x'
         res = convertlabel(LabelEnc.OneOfK{Float64}, [:a,:b,:c,:b,:c,:a], [:a,:b,:c], ObsDim.Constant(1))
         @test typeof(res) <: Matrix{Float64}
@@ -422,7 +425,7 @@ println("<HEARTBEAT>")
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x
                 res = @inferred convertlabel(dst_lm, src_x, src_lm, ObsDim.First())
-                @test typeof(res) <: typeof(dst_x')
+                @test_broken typeof(res) <: typeof(dst_x')
                 @test res == dst_x'
 
                 # kw obsdim
@@ -433,10 +436,10 @@ println("<HEARTBEAT>")
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x
                 res = convertlabel(dst_lm, src_x, obsdim=1)
-                @test typeof(res) <: typeof(dst_x')
+                @test_broken typeof(res) <: typeof(dst_x')
                 @test res == dst_x'
                 res = convertlabel(dst_lm, src_x, src_lm, obsdim=1)
-                @test typeof(res) <: typeof(dst_x')
+                @test_broken typeof(res) <: typeof(dst_x')
                 @test res == dst_x'
             end
         end
