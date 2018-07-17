@@ -2,6 +2,9 @@
 
 # Eltype, Labelcount, Arraydimensions
 abstract type LabelEncoding{T,K,M} end
+# act as scalar in broadcast, see julia #18618
+broadcastable(x::LabelEncoding) = Ref(x)
+
 const BinaryLabelEncoding{T,M} = LabelEncoding{T,2,M}
 const VectorLabelEncoding{T,K} = LabelEncoding{T,K,1}
 const MatrixLabelEncoding{T,K} = LabelEncoding{T,K,2}
