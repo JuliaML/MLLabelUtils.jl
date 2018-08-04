@@ -4,7 +4,7 @@ _Utility package for working with classification targets. As such, this package 
 
 | **Package Status** | **Package Evaluator** | **Build Status**  |
 |:------------------:|:---------------------:|:-----------------:|
-| [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md) [![Documentation Status](https://img.shields.io/badge/docs-latest-blue.svg?style=flat)](http://mllabelutilsjl.readthedocs.io/en/latest/?badge=latest) | [![MLLabelUtils 0.5](http://pkg.julialang.org/badges/MLLabelUtils_0.5.svg)](http://pkg.julialang.org/?pkg=MLLabelUtils) [![MLLabelUtils 0.6](http://pkg.julialang.org/badges/MLLabelUtils_0.6.svg)](http://pkg.julialang.org/?pkg=MLLabelUtils) | [![Build Status](https://travis-ci.org/JuliaML/MLLabelUtils.jl.svg?branch=master)](https://travis-ci.org/JuliaML/MLLabelUtils.jl) [![Build status](https://ci.appveyor.com/api/projects/status/do24mf2pojqx6tai?svg=true)](https://ci.appveyor.com/project/Evizero/mllabelutils-jl) [![Coverage Status](https://coveralls.io/repos/JuliaML/MLLabelUtils.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaML/MLLabelUtils.jl?branch=master) |
+| [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md) [![Documentation Status](https://img.shields.io/badge/docs-latest-blue.svg?style=flat)](http://mllabelutilsjl.readthedocs.io/en/latest/?badge=latest) | [![MLLabelUtils 0.6](http://pkg.julialang.org/badges/MLLabelUtils_0.6.svg)](http://pkg.julialang.org/?pkg=MLLabelUtils) [![MLLabelUtils 0.7](http://pkg.julialang.org/badges/MLLabelUtils_0.7.svg)](http://pkg.julialang.org/?pkg=MLLabelUtils) | [![Build Status](https://travis-ci.org/JuliaML/MLLabelUtils.jl.svg?branch=master)](https://travis-ci.org/JuliaML/MLLabelUtils.jl) [![Build status](https://ci.appveyor.com/api/projects/status/do24mf2pojqx6tai?svg=true)](https://ci.appveyor.com/project/Evizero/mllabelutils-jl) [![Coverage Status](https://coveralls.io/repos/JuliaML/MLLabelUtils.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaML/MLLabelUtils.jl?branch=master) |
 
 ## Introduction
 
@@ -178,7 +178,7 @@ julia> convertlabel(LabelEnc.TrueFalse, true_targets, LabelEnc.OneVsRest(:yes))
 `NativeLabels` maps between data of an arbitary type (e.g. Strings) and
 the other label types (Normally `LabelEnc.Indices{Int}` for an integer index).
 When using it, you should always save the encoding in a variable,
-and pass it as an argument to `convertlabel`; as otherwise the encoding will 
+and pass it as an argument to `convertlabel`; as otherwise the encoding will
 be inferred each time, so will normally encode differently for different inputs.
 
 ```julia
