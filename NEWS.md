@@ -1,6 +1,11 @@
+# v0.4.0
+
+- update to `0.7` and drop `0.6` suppor and drop `0.6` supportt
+
 # v0.3.0
- - Allow `NativeLavels` to specify a fallback label function to be used if 
-   an label that is not known to the encoder is encountered.
+
+- Allow `NativeLavels` to specify a fallback label function to be used if
+  an label that is not known to the encoder is encountered.
 
 # v0.2.0
 

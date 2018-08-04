@@ -1,4 +1,4 @@
-julia 0.6.0
+julia 0.7.0-beta2
 StatsBase 0.20
-LearnBase 0.1.5 0.2.0
-MappedArrays 0.0.6
+LearnBase 0.2.0 0.3.0
+MappedArrays 0.1.0

@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 
 # check for ambiguities
 refambs = detect_ambiguities(Base, Core)
