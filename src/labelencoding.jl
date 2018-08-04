@@ -217,7 +217,7 @@ _ambiguous() = throw(ArgumentError("Can't infer the label meaning because argume
 label2ind(lbl, lm::BinaryLabelEncoding) = ifelse(isposlabel(lbl, lm), 1, 2)
 label2ind(lbl::Union{Number,T}, lm::LabelEnc.Indices{T}) where {T} = Int(lbl)
 label2ind(lbl::Union{Number,T}, lm::LabelEnc.OneOfK{T}) where {T} = Int(lbl)
-label2ind(lbl::AbstractVector, lm::LabelEnc.OneOfK) = indmax(lbl)
+label2ind(lbl::AbstractVector, lm::LabelEnc.OneOfK) = argmax(lbl)
 function label2ind(lbl, lm::LabelEnc.NativeLabels)
     std_lbl = standardize_label(lbl, lm)
     Int(lm.invlabel[std_lbl])
@@ -267,7 +267,7 @@ isposlabel(value::T, zo::LabelEnc.ZeroOne)   where {T<:Number} = (value >= zo.cu
 isposlabel(value::T, ::LabelEnc.MarginBased) where {T<:Number} = (sign(value) >= T(0))
 isposlabel(value::Number, lm::LabelEnc.Indices{T,2}) where {T} = value == poslabel(lm)
 isposlabel(value::Number, lm::LabelEnc.OneOfK{T,2})  where {T} = value == T(1)
-isposlabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} = indmax(value) == 1
+isposlabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} = argmax(value) == 1
 isposlabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} = standardize_label(value, lm) == poslabel(lm)
 
 # What it means to be a negative label
@@ -283,7 +283,7 @@ isneglabel(value::T, zo::LabelEnc.ZeroOne)   where {T<:Number} = (value < zo.cut
 isneglabel(value::T, ::LabelEnc.MarginBased) where {T<:Number} = (sign(value) == -1)
 isneglabel(value::Number, lm::LabelEnc.Indices{T,2}) where {T} = value == neglabel(lm)
 isneglabel(value::Number, lm::LabelEnc.OneOfK{T,2})  where {T} = value == T(2)
-isneglabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} = indmax(value) == 2
+isneglabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} = argmax(value) == 2
 isneglabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} = standardize_label(value, lm) == neglabel(lm)
 
 # Check if the encoding is appropriate
@@ -414,7 +414,7 @@ function labelenc(targets::AbstractVector{T}) where {T<:Number}
     elseif all(x > 0 && isinteger(x) for x in lbls)
         LabelEnc.Indices(T, maximum(lbls))
     elseif length(lbls) > 10 && any(!isinteger(x) for x in lbls)
-        warn("The number of distinct floating point numbers (including at least one that is non-integer!) in the label vector is quite large. Are you sure you want to perform classification and not regression?")
+        @warn("The number of distinct floating point numbers (including at least one that is non-integer!) in the label vector is quite large. Are you sure you want to perform classification and not regression?")
         LabelEnc.NativeLabels(lbls)
     else
         LabelEnc.NativeLabels(lbls)

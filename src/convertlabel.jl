@@ -157,7 +157,7 @@ end
 function convertlabel(dst::VectorLabelEncoding{TD,K}, values::AbstractMatrix{T}, src::LabelEnc.OneOfK{TS,K}, ::Union{ObsDim.Last,ObsDim.Constant{2}}) where {TD,T,TS,K}
     @assert size(values, 1) == K
     n = size(values, 2)
-    buffer = _array_type(TD,Val{1})(n)
+    buffer = _array_type(TD,Val{1})(undef, n)
     @inbounds for i in 1:n
         tind = 1
         tmax = typemin(T)
@@ -176,7 +176,7 @@ end
 function convertlabel(dst::VectorLabelEncoding{TD,K}, values::AbstractMatrix{T}, src::LabelEnc.OneOfK{TS,K}, ::ObsDim.First) where {TD,T,TS,K}
     @assert size(values, 2) == K
     n = size(values, 1)
-    buffer = _array_type(TD,Val{1})(n)
+    buffer = _array_type(TD,Val{1})(undef, n)
     @inbounds for i in 1:n
         tind = 1
         tmax = typemin(T)

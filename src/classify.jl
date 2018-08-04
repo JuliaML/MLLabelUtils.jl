@@ -49,7 +49,7 @@ end
 ## OneOfK
 
 function classify(values::AbstractVector, ::Type{<:LabelEnc.OneOfK})
-    indmax(values)
+    argmax(values)
 end
 
 function classify(values::AbstractVector, lm::LabelEnc.OneOfK)
@@ -88,7 +88,7 @@ function classify(values::AbstractMatrix,
                   ::Union{ObsDim.Last,ObsDim.Constant{2}}
                  ) where {T<:LabelEnc.OneOfK}
     K, N = size(values)
-    buffer = Vector{Int}(N)
+    buffer = Vector{Int}(undef, N)
     classify!(buffer, values, T, ObsDim.Last())
 end
 
@@ -119,7 +119,7 @@ function classify(values::AbstractMatrix,
                   ::ObsDim.First
                  ) where {T<:LabelEnc.OneOfK}
     N, K = size(values)
-    buffer = Vector{Int}(N)
+    buffer = Vector{Int}(undef, N)
     classify!(buffer, values, T, ObsDim.First())
 end
 

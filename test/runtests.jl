@@ -1,4 +1,5 @@
-using Base.Test
+using Test
+using MappedArrays
 
 # check for ambiguities
 refambs = detect_ambiguities(Base, Core)

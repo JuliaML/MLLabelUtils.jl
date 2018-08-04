@@ -4,6 +4,7 @@ module MLLabelUtils
 using StatsBase
 using LearnBase
 using MappedArrays
+import Base.Broadcast: broadcastable
 
 export
 
