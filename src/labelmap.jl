@@ -47,6 +47,16 @@ function labelfreq!(dict::Dict{T,Int}, iter::AbstractVector) where {T}
     dict
 end
 
+function rarelabel(labels::Array,threshold::Integer,replace_label::Symbol)
+    label_freq = labelfreq(labels)
+    for i = 1:length(labels)
+        if label_freq[labels[i]]<=threshold
+            labels[i]=replace_label
+        end
+    end
+    return labels
+end
+
 labelfreq(itr::T) where {T} = countmap(itr, alg = :dict)::Dict{eltype(T),Int}
 labelfreq(dict::Dict{T,Vector{Int}})  where {T} = Dict(k => length(v) for (k,v) in dict)::Dict{T,Int}
 

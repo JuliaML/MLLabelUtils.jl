@@ -31,6 +31,7 @@ export
     labelmap!,
     labelfreq,
     labelfreq!,
+    rarelabel,
 
     LabelEnc,
     labelenc,
