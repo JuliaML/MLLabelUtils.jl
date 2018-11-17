@@ -132,4 +132,20 @@ end
         @test lm[-1] == 2
         @test lm[2] == 2
     end
+
+    @testset "labelmap2vec" begin
+        @testset "Symbol" begin
+            labelvec = [:yes,:no,:no,:yes,:yes]
+            @test labelvec == @inferred labelmap2vec(labelmap(labelvec))
+            labelvec = Vector{Symbol}(undef, 0)
+            @test labelvec == @inferred labelmap2vec(labelmap(labelvec))
+        end
+
+        @testset "Float64" begin
+            labelvec = [1.,-1,-1,1,1]
+            @test labelvec == @inferred labelmap2vec(labelmap(labelvec))
+            labelvec = Vector{Float64}(undef, 0)
+            @test labelvec == @inferred labelmap2vec(labelmap(labelvec))
+        end
+    end
 end
