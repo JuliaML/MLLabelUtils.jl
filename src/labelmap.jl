@@ -60,3 +60,14 @@ labelfreq(A::AbstractMatrix) = throw(ArgumentError("labelfreq not supported for 
 labelenc(x::Dict) = labelenc(label(x))
 nlabel(x::Dict) = length(keys(x))
 label(x::Dict) = _arrange_label(collect(keys(x)))
+
+## Convert label map to label vector
+
+function labelmap2vec(lm::Dict{T, Vector{Int}}) where T
+    isempty(lm) && return Vector{T}(undef, 0)
+    labelvec = Vector{T}(undef, mapreduce(length, +, values(lm)))
+    @inbounds for (k, v) in lm
+        labelvec[v] .= k
+    end
+    return labelvec
+end

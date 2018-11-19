@@ -394,6 +394,34 @@ observation(s).
      :maybe => [4,8]
      :no    => [2,3,6,7]
 
+There also is a convenience function to reverse a labelmap into a label vector.
+
+.. function:: labelmap2vec(dict) -> Vector
+
+Computes an `Vector` of labels by element-wise
+traversal of the entries in `dict`.
+
+   :param Dict{T, Int} dict: A labelmap with labels of type T.
+
+   :return: Vector{T} of labels.
+
+.. code-block:: jlcon
+
+   julia> labelvec = [:yes,:no,:no,:yes,:yes]
+
+   julia> lm = labelmap(labelvec)
+   Dict{Symbol,Array{Int64,1}} with 2 entries:
+       :yes => [1, 4, 5]
+       :no  => [2, 3]
+
+   julia> labelmap2vec(lm)
+   5-element Array{Symbol,1}:
+       :yes
+       :no
+       :no
+       :yes
+       :yes
+
 Frequency of Labels
 ------------------------
 
@@ -491,4 +519,3 @@ frequency-map in-place.
      :yes   => 2
      :maybe => 2
      :no    => 4
-

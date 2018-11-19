@@ -31,6 +31,7 @@ export
     labelmap!,
     labelfreq,
     labelfreq!,
+    labelmap2vec,
 
     LabelEnc,
     labelenc,
