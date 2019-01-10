@@ -384,4 +384,4 @@ traversal of the entries in `dict`.
         :yes
         :yes
 """
-function labelmap end
+function labelmap2vec end
