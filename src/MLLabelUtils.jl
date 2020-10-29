@@ -5,6 +5,8 @@ using LearnBase
 using MappedArrays
 import Base.Broadcast: broadcastable
 
+using LearnBase: ObsDim
+
 export
 
     ind2label,
