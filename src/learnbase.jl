@@ -1,5 +1,5 @@
 # everything that should move to learnbase
-
+import LearnBase: ObsDim
 # Eltype, Labelcount, Arraydimensions
 abstract type LabelEncoding{T,K,M} end
 # act as scalar in broadcast, see julia #18618
