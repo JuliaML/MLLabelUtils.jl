@@ -312,7 +312,7 @@ function islabelenc(targets::AbstractVector, lm::LabelEnc.NativeLabels; strict=t
 end
 
 function islabelenc(targets::AbstractMatrix{<:Union{Bool,Number}}, lm; obsdim = LearnBase.default_obsdim(targets))
-    islabelenc(targets, lm, convert(LearnBase.ObsDimension,obsdim))
+    islabelenc(targets, lm, Val(obsdim))
 end
 
 function islabelenc(targets::AbstractMatrix{<:Union{Bool,Number}}, lm::LabelEnc.OneOfK, obsdim)
@@ -323,17 +323,17 @@ function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T}}, obsd
     islabelenc(targets, LabelEnc.OneOfK, obsdim)
 end
 
-function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T,K}}, ::Union{ObsDim.Last,ObsDim.Constant{2}}) where {T<:Union{Bool,Number},K}
+function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T,K}}, ::Val{2}) where {T<:Union{Bool,Number},K}
     k, n = size(targets)
-    ifelse(k != K, false, islabelenc(targets, LabelEnc.OneOfK, ObsDim.Last()))
+    ifelse(k != K, false, islabelenc(targets, LabelEnc.OneOfK, 2))
 end
 
-function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T,K}}, ::ObsDim.First) where {T<:Union{Bool,Number},K}
+function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T,K}}, ::Val{1}) where {T<:Union{Bool,Number},K}
     n, k = size(targets)
-    ifelse(k != K, false, islabelenc(targets, LabelEnc.OneOfK, ObsDim.First()))
+    ifelse(k != K, false, islabelenc(targets, LabelEnc.OneOfK, 1))
 end
 
-function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK}, ::Union{ObsDim.Last,ObsDim.Constant{2}}) where {T<:Union{Bool,Number}}
+function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK}, ::Val{2}) where {T<:Union{Bool,Number}}
     k, n = size(targets)
     @inbounds for i in 1:n
         found = false
@@ -357,7 +357,7 @@ function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK}, ::Union
     return true
 end
 
-function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK}, ::ObsDim.First) where {T<:Union{Bool,Number}}
+function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK}, ::Val{1}) where {T<:Union{Bool,Number}}
     n, k = size(targets)
     @inbounds for i in 1:n
         found = false
@@ -423,13 +423,13 @@ end
 
 # TODO: Multilabel (Matrix as targets)
 function labelenc(targets::AbstractMatrix{<:Number}; obsdim = LearnBase.default_obsdim(targets))
-    labelenc(targets, convert(LearnBase.ObsDimension,obsdim))
+    labelenc(targets, Val(obsdim))
 end
 
-function labelenc(targets::AbstractMatrix{T}, ::Union{ObsDim.Last,ObsDim.Constant{2}}) where {T<:Number}
+function labelenc(targets::AbstractMatrix{T}, ::Val{2}) where {T<:Number}
     LabelEnc.OneOfK(T,size(targets,1))
 end
 
-function labelenc(targets::AbstractMatrix{T}, ::ObsDim.First) where {T<:Number}
+function labelenc(targets::AbstractMatrix{T}, ::Val{1}) where {T<:Number}
     LabelEnc.OneOfK(T,size(targets,2))
 end

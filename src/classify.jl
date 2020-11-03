@@ -61,41 +61,41 @@ function classify!(buffer::T,
                    lm;
                    obsdim = LearnBase.default_obsdim(values)
                   ) where {T<:AbstractVector}
-    classify!(buffer, values, lm, convert(LearnBase.ObsDimension,obsdim))::T
+    classify!(buffer, values, lm, Val(obsdim))::T
 end
 
 function classify(values::AbstractMatrix,
                   lm;
                   obsdim = LearnBase.default_obsdim(values))
-    classify(values, lm, convert(LearnBase.ObsDimension,obsdim))
+    classify(values, lm, Val(obsdim))
 end
 
 function classify!(buffer,
                    values::AbstractMatrix,
                    lm::LabelEnc.OneOfK,
-                   obsdim::LearnBase.ObsDimension)
+                   obsdim)
     classify!(buffer, values, typeof(lm), obsdim)
 end
 
 function classify(values::AbstractMatrix,
                   lm::LabelEnc.OneOfK,
-                  obsdim::LearnBase.ObsDimension)
+                  obsdim)
     classify(values, typeof(lm), obsdim)
 end
 
 function classify(values::AbstractMatrix,
                   ::Type{T},
-                  ::Union{ObsDim.Last,ObsDim.Constant{2}}
+                  ::Val{2}
                  ) where {T<:LabelEnc.OneOfK}
     K, N = size(values)
     buffer = Vector{Int}(undef, N)
-    classify!(buffer, values, T, ObsDim.Last())
+    classify!(buffer, values, T, Val(2))
 end
 
 function classify!(buffer::AbstractVector,
                    values::AbstractMatrix{R},
                    ::Type{<:LabelEnc.OneOfK},
-                   ::Union{ObsDim.Last,ObsDim.Constant{2}}
+                   ::Val{2}
                   ) where {R<:Number}
     K, N = size(values)
     @assert length(buffer) == N
@@ -116,17 +116,17 @@ end
 
 function classify(values::AbstractMatrix,
                   ::Type{T},
-                  ::ObsDim.First
+                  ::Val{1}
                  ) where {T<:LabelEnc.OneOfK}
     N, K = size(values)
     buffer = Vector{Int}(undef, N)
-    classify!(buffer, values, T, ObsDim.First())
+    classify!(buffer, values, T, Val(1))
 end
 
 function classify!(buffer::AbstractVector,
                    values::AbstractMatrix{R},
                    ::Type{<:LabelEnc.OneOfK},
-                   ::ObsDim.First
+                   ::Val{1}
                   ) where {R<:Number}
     N, K = size(values)
     tmax = fill(typemin(R),N)
