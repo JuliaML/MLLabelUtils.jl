@@ -1,7 +1,7 @@
 name = "MLLabelUtils"
 uuid = "66a33bbf-0c2b-5fc8-a008-9da813334f0a"
 authors = ["Christof Stocker <stocker.christof@gmail.com>"]
-version = "0.5.4"
+version = "0.5.5"
 
 [deps]
 LearnBase = "7f8f8fb0-2700-5f03-b4bd-41f8cfc144b6"
