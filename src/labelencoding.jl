@@ -249,11 +249,11 @@ julia> label2ind(-1, LabelEnc.MarginBased())
 2
 ```
 """
-label2ind(lbl, lm::LearnBase.BinaryLabelEncoding) = ifelse(isposlabel(lbl, lm), 1, 2)
-label2ind(lbl::Union{Number,T}, lm::LabelEnc.Indices{T}) where {T} = Int(lbl)
-label2ind(lbl::Union{Number,T}, lm::LabelEnc.OneOfK{T}) where {T} = Int(lbl)
-label2ind(lbl::AbstractVector, lm::LabelEnc.OneOfK) = argmax(lbl)
-function label2ind(lbl, lm::LabelEnc.NativeLabels)
+LearnBase.label2ind(lbl, lm::LearnBase.BinaryLabelEncoding) = ifelse(isposlabel(lbl, lm), 1, 2)
+LearnBase.label2ind(lbl::Union{Number,T}, lm::LabelEnc.Indices{T}) where {T} = Int(lbl)
+LearnBase.label2ind(lbl::Union{Number,T}, lm::LabelEnc.OneOfK{T}) where {T} = Int(lbl)
+LearnBase.label2ind(lbl::AbstractVector, lm::LabelEnc.OneOfK) = argmax(lbl)
+function LearnBase.label2ind(lbl, lm::LabelEnc.NativeLabels)
     std_lbl = standardize_label(lbl, lm)
     Int(lm.invlabel[std_lbl])
 end
@@ -275,23 +275,25 @@ julia> ind2label(2, LabelEnc.ZeroOne(Float32))
 0.0f0
 ```
 """
-ind2label(i::Integer, lm::LearnBase.BinaryLabelEncoding) =
+LearnBase.ind2label(i::Integer, lm::LearnBase.BinaryLabelEncoding) =
     ifelse(i == 1, ind2label(Val{1},lm), ind2label(Val{2},lm))
-ind2label(i::Integer, ::LabelEnc.Indices{T}) where {T} = T(i)
-ind2label(i::Integer, ::LabelEnc.OneOfK{T,K}) where {T,K} = (x = zeros(T,K); x[i] = T(1); x)
-ind2label(i::Integer, lm::LabelEnc.NativeLabels) = lm.label[Int(i)]
+LearnBase.ind2label(i::Integer, ::LabelEnc.Indices{T}) where {T} = T(i)
+LearnBase.ind2label(i::Integer, ::LabelEnc.OneOfK{T,K}) where {T,K} =
+    (x = zeros(T,K); x[i] = T(1); x)
+LearnBase.ind2label(i::Integer, lm::LabelEnc.NativeLabels) = lm.label[Int(i)]
 
-ind2label(::Type{Val{1}}, ::LabelEnc.TrueFalse) = true
-ind2label(::Type{Val{2}}, ::LabelEnc.TrueFalse) = false
-ind2label(::Type{Val{1}}, ::LabelEnc.ZeroOne{T}) where {T} = T(1)
-ind2label(::Type{Val{2}}, ::LabelEnc.ZeroOne{T}) where {T} = T(0)
-ind2label(::Type{Val{1}}, ::LabelEnc.MarginBased{T}) where {T} = T(1)
-ind2label(::Type{Val{2}}, ::LabelEnc.MarginBased{T}) where {T} = -T(1)
-ind2label(::Type{Val{1}}, ovr::LabelEnc.OneVsRest) = ovr.poslabel
-ind2label(::Type{Val{2}}, ovr::LabelEnc.OneVsRest) = ovr.neglabel
-ind2label(::Type{Val{K}}, ::LabelEnc.Indices{T}) where {T,K} = T(K)
-ind2label(::Type{Val{I}}, ::LabelEnc.OneOfK{T,K}) where {T,I,K} = (x = zeros(T,K); x[I] = T(1); x)
-ind2label(::Type{Val{K}}, lm::LabelEnc.NativeLabels) where {K} = lm.label[K]
+LearnBase.ind2label(::Type{Val{1}}, ::LabelEnc.TrueFalse) = true
+LearnBase.ind2label(::Type{Val{2}}, ::LabelEnc.TrueFalse) = false
+LearnBase.ind2label(::Type{Val{1}}, ::LabelEnc.ZeroOne{T}) where {T} = T(1)
+LearnBase.ind2label(::Type{Val{2}}, ::LabelEnc.ZeroOne{T}) where {T} = T(0)
+LearnBase.ind2label(::Type{Val{1}}, ::LabelEnc.MarginBased{T}) where {T} = T(1)
+LearnBase.ind2label(::Type{Val{2}}, ::LabelEnc.MarginBased{T}) where {T} = -T(1)
+LearnBase.ind2label(::Type{Val{1}}, ovr::LabelEnc.OneVsRest) = ovr.poslabel
+LearnBase.ind2label(::Type{Val{2}}, ovr::LabelEnc.OneVsRest) = ovr.neglabel
+LearnBase.ind2label(::Type{Val{K}}, ::LabelEnc.Indices{T}) where {T,K} = T(K)
+LearnBase.ind2label(::Type{Val{I}}, ::LabelEnc.OneOfK{T,K}) where {T,I,K} =
+    (x = zeros(T,K); x[I] = T(1); x)
+LearnBase.ind2label(::Type{Val{K}}, lm::LabelEnc.NativeLabels) where {K} = lm.label[K]
 
 """
     poslabel(encoding)
@@ -305,7 +307,7 @@ julia> poslabel(LabelEnc.MarginBased(Float32))
 1.0f0
 ```
 """
-poslabel(lm::LabelEnc.BinaryLabelEncoding) = ind2label(Val{1}, lm)
+LearnBase.poslabel(lm::LabelEnc.BinaryLabelEncoding) = ind2label(Val{1}, lm)
 """
     neglabel(encoding)
 
@@ -318,7 +320,7 @@ julia> neglabel(LabelEnc.MarginBased(Float32))
 -1.0f0
 ```
 """
-neglabel(lm::LabelEnc.BinaryLabelEncoding) = ind2label(Val{2}, lm)
+LearnBase.neglabel(lm::LabelEnc.BinaryLabelEncoding) = ind2label(Val{2}, lm)
 
 """
     label(obj)::Vector
@@ -341,20 +343,20 @@ julia> label(LabelEnc.ZeroOne())
     0.0
 ```
 """
-label(lm::LabelEnc.BinaryLabelEncoding{T,1}) where {T} = [poslabel(lm), neglabel(lm)]
-label(::LabelEnc.Indices{T,K}) where {T,K} = collect(T(1):T(K))
-label(::LabelEnc.OneOfK{T,K}) where {T,K} = collect(1:K)
-label(lm::LabelEnc.NativeLabels) = lm.label
+LearnBase.label(lm::LabelEnc.BinaryLabelEncoding{T,1}) where {T} = [poslabel(lm), neglabel(lm)]
+LearnBase.label(::LabelEnc.Indices{T,K}) where {T,K} = collect(T(1):T(K))
+LearnBase.label(::LabelEnc.OneOfK{T,K}) where {T,K} = collect(1:K)
+LearnBase.label(lm::LabelEnc.NativeLabels) = lm.label
 
 """
     labeltype(::Type{<:LabelEncoding})
 
 Determine the type of the labels represented by the label encoding.
 """
-labeltype(::Type{LabelEnc.ZeroOne}) = Number
-labeltype(::Type{LabelEnc.MarginBased}) = Number
-labeltype(::Type{LabelEnc.Indices}) = Number
-labeltype(::Type{LabelEnc.OneOfK}) = Number
+LearnBase.labeltype(::Type{LabelEnc.ZeroOne}) = Number
+LearnBase.labeltype(::Type{LabelEnc.MarginBased}) = Number
+LearnBase.labeltype(::Type{LabelEnc.Indices}) = Number
+LearnBase.labeltype(::Type{LabelEnc.OneOfK}) = Number
 
 # What it means to be a positive label
 """
@@ -375,20 +377,21 @@ julia> isposlabel(:b, LabelEnc.NativeLabels([:a,:b]))
 false
 ```
 """
-isposlabel(value, ::LabelEnc.FuzzyBinary) = _ambiguous()
-isposlabel(value, ovr::LabelEnc.OneVsRest) = (value == ovr.poslabel)
-isposlabel(value::Bool, ::LabelEnc.FuzzyBinary) = value
-isposlabel(value::Bool, ::LabelEnc.TrueFalse)   = value
-isposlabel(value::Bool, ::LabelEnc.MarginBased) = throw(MethodError(isposlabel,(value,)))
-isposlabel(value::Bool, ::LabelEnc.Indices)     = throw(MethodError(isposlabel,(value,)))
-isposlabel(value::Bool, ::LabelEnc.OneOfK)      = throw(MethodError(isposlabel,(value,)))
-isposlabel(value::T, ::LabelEnc.FuzzyBinary) where {T<:Number} = (value > T(0))
-isposlabel(value::T, zo::LabelEnc.ZeroOne)   where {T<:Number} = (value >= zo.cutoff)
-isposlabel(value::T, ::LabelEnc.MarginBased) where {T<:Number} = (sign(value) >= T(0))
-isposlabel(value::Number, lm::LabelEnc.Indices{T,2}) where {T} = value == poslabel(lm)
-isposlabel(value::Number, lm::LabelEnc.OneOfK{T,2})  where {T} = value == T(1)
-isposlabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} = argmax(value) == 1
-isposlabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} =
+LearnBase.isposlabel(value, ::LabelEnc.FuzzyBinary) = _ambiguous()
+LearnBase.isposlabel(value, ovr::LabelEnc.OneVsRest) = (value == ovr.poslabel)
+LearnBase.isposlabel(value::Bool, ::LabelEnc.FuzzyBinary) = value
+LearnBase.isposlabel(value::Bool, ::LabelEnc.TrueFalse)   = value
+LearnBase.isposlabel(value::Bool, ::LabelEnc.MarginBased) = throw(MethodError(isposlabel,(value,)))
+LearnBase.isposlabel(value::Bool, ::LabelEnc.Indices)     = throw(MethodError(isposlabel,(value,)))
+LearnBase.isposlabel(value::Bool, ::LabelEnc.OneOfK)      = throw(MethodError(isposlabel,(value,)))
+LearnBase.isposlabel(value::T, ::LabelEnc.FuzzyBinary) where {T<:Number} = (value > T(0))
+LearnBase.isposlabel(value::T, zo::LabelEnc.ZeroOne)   where {T<:Number} = (value >= zo.cutoff)
+LearnBase.isposlabel(value::T, ::LabelEnc.MarginBased) where {T<:Number} = (sign(value) >= T(0))
+LearnBase.isposlabel(value::Number, lm::LabelEnc.Indices{T,2}) where {T} = value == poslabel(lm)
+LearnBase.isposlabel(value::Number, lm::LabelEnc.OneOfK{T,2})  where {T} = value == T(1)
+LearnBase.isposlabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} =
+    (argmax(value) == 1)
+LearnBase.isposlabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} =
     standardize_label(value, lm) == poslabel(lm)
 
 # What it means to be a negative label
@@ -410,20 +413,21 @@ julia> isneglabel(:b, LabelEnc.NativeLabels([:a,:b]))
 true
 ```
 """
-isneglabel(value, ::LabelEnc.FuzzyBinary) = _ambiguous()
-isneglabel(value, ovr::LabelEnc.OneVsRest) = (value != ovr.poslabel)
-isneglabel(value::Bool, ::LabelEnc.FuzzyBinary) = !value
-isneglabel(value::Bool, ::LabelEnc.TrueFalse)   = !value
-isneglabel(value::Bool, ::LabelEnc.MarginBased) = throw(MethodError(isneglabel,(value,)))
-isneglabel(value::Bool, ::LabelEnc.Indices)     = throw(MethodError(isneglabel,(value,)))
-isneglabel(value::Bool, ::LabelEnc.OneOfK)      = throw(MethodError(isneglabel,(value,)))
-isneglabel(value::T, ::LabelEnc.FuzzyBinary) where {T<:Number} = (value <= T(0))
-isneglabel(value::T, zo::LabelEnc.ZeroOne)   where {T<:Number} = (value < zo.cutoff)
-isneglabel(value::T, ::LabelEnc.MarginBased) where {T<:Number} = (sign(value) == -1)
-isneglabel(value::Number, lm::LabelEnc.Indices{T,2}) where {T} = value == neglabel(lm)
-isneglabel(value::Number, lm::LabelEnc.OneOfK{T,2})  where {T} = value == T(2)
-isneglabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} = argmax(value) == 2
-isneglabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} =
+LearnBase.isneglabel(value, ::LabelEnc.FuzzyBinary) = _ambiguous()
+LearnBase.isneglabel(value, ovr::LabelEnc.OneVsRest) = (value != ovr.poslabel)
+LearnBase.isneglabel(value::Bool, ::LabelEnc.FuzzyBinary) = !value
+LearnBase.isneglabel(value::Bool, ::LabelEnc.TrueFalse)   = !value
+LearnBase.isneglabel(value::Bool, ::LabelEnc.MarginBased) = throw(MethodError(isneglabel,(value,)))
+LearnBase.isneglabel(value::Bool, ::LabelEnc.Indices)     = throw(MethodError(isneglabel,(value,)))
+LearnBase.isneglabel(value::Bool, ::LabelEnc.OneOfK)      = throw(MethodError(isneglabel,(value,)))
+LearnBase.isneglabel(value::T, ::LabelEnc.FuzzyBinary) where {T<:Number} = (value <= T(0))
+LearnBase.isneglabel(value::T, zo::LabelEnc.ZeroOne)   where {T<:Number} = (value < zo.cutoff)
+LearnBase.isneglabel(value::T, ::LabelEnc.MarginBased) where {T<:Number} = (sign(value) == -1)
+LearnBase.isneglabel(value::Number, lm::LabelEnc.Indices{T,2}) where {T} = value == neglabel(lm)
+LearnBase.isneglabel(value::Number, lm::LabelEnc.OneOfK{T,2})  where {T} = value == T(2)
+LearnBase.isneglabel(value::AbstractVector{<:Number}, lm::LabelEnc.OneOfK{T,2}) where {T} =
+    (argmax(value) == 2)
+LearnBase.isneglabel(value, lm::LabelEnc.NativeLabels{T,2}) where {T} =
     standardize_label(value, lm) == neglabel(lm)
 
 # Check if the encoding is appropriate
@@ -442,23 +446,23 @@ julia> islabelenc([1,-1,1], LabelEnc.ZeroOne)
 false
 ```
 """
-islabelenc(targets::AbstractArray, args...) = false
-islabelenc(targets::AbstractVector{T}, ::LabelEnc.FuzzyBinary)       where {T<:Union{Number,Bool}} = true
-islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.FuzzyBinary}) where {T<:Union{Number,Bool}} = true
-islabelenc(targets::AbstractVector{T}, ::LabelEnc.ZeroOne{T})        where {T<:Union{Number,Bool}} = all(x == 0 || x == 1 for x in targets)
-islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.ZeroOne{T}})  where {T<:Union{Number,Bool}} = all(x == 0 || x == 1 for x in targets)
-islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.ZeroOne})     where {T<:Union{Number,Bool}} = all(x == 0 || x == 1 for x in targets)
-islabelenc(targets::AbstractVector{T}, ::LabelEnc.MarginBased{T})       where {T<:Number} = all(x == -1 || x == 1 for x in targets)
-islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.MarginBased{T}}) where {T<:Number} = all(x == -1 || x == 1 for x in targets)
-islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.MarginBased})    where {T<:Number} = all(x == -1 || x == 1 for x in targets)
-islabelenc(targets::AbstractVector{Bool}, ::LabelEnc.TrueFalse) = true
-islabelenc(targets::AbstractVector{Bool}, ::Type{LabelEnc.TrueFalse}) = true
-islabelenc(targets::AbstractVector{T}, lm::LabelEnc.OneVsRest{T})   where {T}           = any(x == lm.poslabel for x in targets)
-islabelenc(targets::AbstractVector{T}, ::LabelEnc.Indices{T,K})     where {T<:Number,K} = all(0 < x <= T(K) && isinteger(x) for x in targets)
-islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.Indices{T}}) where {T<:Number}   = all(0 < x && isinteger(x) for x in targets)
-islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.Indices})    where {T<:Number}   = all(0 < x && isinteger(x) for x in targets)
+LearnBase.islabelenc(targets::AbstractArray, args...) = false
+LearnBase.islabelenc(targets::AbstractVector{T}, ::LabelEnc.FuzzyBinary)       where {T<:Union{Number,Bool}} = true
+LearnBase.islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.FuzzyBinary}) where {T<:Union{Number,Bool}} = true
+LearnBase.islabelenc(targets::AbstractVector{T}, ::LabelEnc.ZeroOne{T})        where {T<:Union{Number,Bool}} = all(x == 0 || x == 1 for x in targets)
+LearnBase.islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.ZeroOne{T}})  where {T<:Union{Number,Bool}} = all(x == 0 || x == 1 for x in targets)
+LearnBase.islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.ZeroOne})     where {T<:Union{Number,Bool}} = all(x == 0 || x == 1 for x in targets)
+LearnBase.islabelenc(targets::AbstractVector{T}, ::LabelEnc.MarginBased{T})       where {T<:Number} = all(x == -1 || x == 1 for x in targets)
+LearnBase.islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.MarginBased{T}}) where {T<:Number} = all(x == -1 || x == 1 for x in targets)
+LearnBase.islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.MarginBased})    where {T<:Number} = all(x == -1 || x == 1 for x in targets)
+LearnBase.islabelenc(targets::AbstractVector{Bool}, ::LabelEnc.TrueFalse) = true
+LearnBase.islabelenc(targets::AbstractVector{Bool}, ::Type{LabelEnc.TrueFalse}) = true
+LearnBase.islabelenc(targets::AbstractVector{T}, lm::LabelEnc.OneVsRest{T})   where {T}           = any(x == lm.poslabel for x in targets)
+LearnBase.islabelenc(targets::AbstractVector{T}, ::LabelEnc.Indices{T,K})     where {T<:Number,K} = all(0 < x <= T(K) && isinteger(x) for x in targets)
+LearnBase.islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.Indices{T}}) where {T<:Number}   = all(0 < x && isinteger(x) for x in targets)
+LearnBase.islabelenc(targets::AbstractVector{T}, ::Type{LabelEnc.Indices})    where {T<:Number}   = all(0 < x && isinteger(x) for x in targets)
 
-function islabelenc(targets::AbstractVector, lm::LabelEnc.NativeLabels; strict=true)
+function LearnBase.islabelenc(targets::AbstractVector, lm::LabelEnc.NativeLabels; strict=true)
     if strict
         all(haskey(lm.invlabel, x) for x in targets)
     else
@@ -466,17 +470,17 @@ function islabelenc(targets::AbstractVector, lm::LabelEnc.NativeLabels; strict=t
     end
 end
 
-function islabelenc(targets::AbstractMatrix{<:Union{Bool,Number}}, lm::LabelEnc.OneOfK;
+function LearnBase.islabelenc(targets::AbstractMatrix{<:Union{Bool,Number}}, lm::LabelEnc.OneOfK;
                     obsdim = default_obsdim(targets))
     islabelenc(targets, typeof(lm); obsdim = obsdim)
 end
 
-function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T}};
+function LearnBase.islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T}};
                     obsdim = default_obsdim(targets)) where {T<:Union{Bool,Number}}
     islabelenc(targets, LabelEnc.OneOfK; obsdim = obsdim)
 end
 
-function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{<:Any, K}};
+function LearnBase.islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{<:Any, K}};
                     obsdim = default_obsdim(targets)) where {T<:Union{Bool,Number}, K}
     k, n = (obsdim == 1) ? size(targets) : reverse(size(targets))
 
@@ -505,15 +509,15 @@ function islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{<:Any, K}
 end
 
 # Automatic determination of label mode
-labelenc(target) = _ambiguous()
-labelenc(targets::AbstractVector{Bool}) = LabelEnc.TrueFalse()
+LearnBase.labelenc(target) = _ambiguous()
+LearnBase.labelenc(targets::AbstractVector{Bool}) = LabelEnc.TrueFalse()
 
-function labelenc(targets::AbstractVector)
+function LearnBase.labelenc(targets::AbstractVector)
     lbls = label(targets)
     LabelEnc.NativeLabels(lbls)
 end
 
-function labelenc(targets::AbstractVector{T}) where {T<:Number}
+function LearnBase.labelenc(targets::AbstractVector{T}) where {T<:Number}
     lbls = label(targets)
     if length(lbls) == 1
         if lbls[1] == 0
@@ -545,5 +549,5 @@ function labelenc(targets::AbstractVector{T}) where {T<:Number}
 end
 
 # TODO: Multilabel (Matrix as targets)
-labelenc(targets::AbstractMatrix{<:Number}; obsdim = default_obsdim(targets)) =
+LearnBase.labelenc(targets::AbstractMatrix{<:Number}; obsdim = default_obsdim(targets)) =
     LabelEnc.OneOfK(T, size(targets, obsdim))
