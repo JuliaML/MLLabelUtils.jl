@@ -41,7 +41,6 @@ export
 
     convertlabelview
 
-include("learnbase.jl")
 include("labelencoding.jl")
 include("classify.jl")
 # include("convertlabel.jl")
