@@ -22,7 +22,6 @@ export
     isposlabel,
     isneglabel,
 
-    ObsDim,
     classify,
     classify!,
 
