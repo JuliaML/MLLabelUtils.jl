@@ -103,91 +103,45 @@ end
 
 ## OneOfK obsdim kw specified
 
-convertlabel(dst, values, src; obsdim = LearnBase.default_obsdim(values)) = convertlabel(dst, values, src, convert(LearnBase.ObsDimension,obsdim))
+convertlabel(dst, values; obsdim = LearnBase.default_obsdim(values)) =
+    convertlabel(dst, values, labelenc(values); obsdim = obsdim)
 
-convertlabel(dst, values; obsdim = LearnBase.default_obsdim(values)) = convertlabel(dst, values, labelenc(values), convert(LearnBase.ObsDimension,obsdim))
-
-function convertlabel(dst, values::AbstractMatrix; obsdim = LearnBase.default_obsdim(values))
-    nobsdim = convert(LearnBase.ObsDimension,obsdim)
-    convertlabel(dst, values, labelenc(values, nobsdim), nobsdim)
-end
-
-# OneOfK default obsdim inserted
-
-function convertlabel(dst::LabelEnc.OneOfK, values::AbstractMatrix, src::LabelEnc.OneOfK)
-    convertlabel(dst, values, src, LearnBase.default_obsdim(values))
-end
-
-function convertlabel(dst::LabelEncoding, values::AbstractMatrix, src::LabelEnc.OneOfK)
-    convertlabel(dst, values, src, LearnBase.default_obsdim(values))
-end
-
-function convertlabel(dst::LabelEnc.OneOfK, values::AbstractArray, src::LabelEncoding)
-    convertlabel(dst, values, src, LearnBase.default_obsdim(values))
-end
+convertlabel(dst, values::AbstractMatrix; obsdim = LearnBase.default_obsdim(values)) =
+    convertlabel(dst, values, labelenc(values; obsdim = obsdim); obsdim = obsdim)
 
 ## To OneOfK
 
-function convertlabel(dst::LabelEnc.OneOfK{TD,K}, values::AbstractMatrix, src::LabelEnc.OneOfK{TS,K}, ::LearnBase.ObsDimension) where {TD,TS,K}
-    _array_type(TD,Val{2})(values)
-end
+convertlabel(dst::LabelEnc.OneOfK{TD,K}, values::AbstractMatrix, src::LabelEnc.OneOfK{TS,K}) where {TD,TS,K} =
+    _array_type(TD, Val{2})(values)
 
-function convertlabel(dst::LabelEnc.OneOfK{T,K}, values::AbstractVector, src::VectorLabelEncoding{S,KS}, ::Union{ObsDim.Last,ObsDim.Constant{2}}) where {T,K,S,KS}
+function convertlabel(dst::LabelEnc.OneOfK{T,K}, values::AbstractVector, src::LearnBase.VectorLabelEncoding{S,KS};
+                      obsdim = LearnBase.default_obsdim(_array_type(T, Val{2}))) where {T,K,S,KS}
     @assert KS <= K
     n = length(values)
-    buffer = _array_type(T,Val{2})(zeros(T, K, n))
+    buffer = (obsdim == 1) ? _array_type(T, Val{2})(zeros(T, n, K)) : _array_type(T, Val{2})(zeros(T, K, n))
     @inbounds for i in 1:n
-        buffer[label2ind(values[i], src), i] = one(T)
+        if obsdim == 1
+            buffer[i, label2ind(values[i], src)] = one(T)
+        else
+            buffer[label2ind(values[i], src), i] = one(T)
+        end
     end
-    buffer
-end
 
-function convertlabel(dst::LabelEnc.OneOfK{T,K}, values::AbstractVector, src::VectorLabelEncoding{S,KS}, ::ObsDim.First) where {T,K,S,KS}
-    @assert KS <= K
-    n = length(values)
-    buffer = _array_type(T,Val{2})(zeros(T, n, K))
-    @inbounds for i in 1:n
-        buffer[i, label2ind(values[i], src)] = one(T)
-    end
-    buffer
+    return buffer
 end
 
 ## From OneOfK
 
-function convertlabel(dst::VectorLabelEncoding{TD,K}, values::AbstractMatrix{T}, src::LabelEnc.OneOfK{TS,K}, ::Union{ObsDim.Last,ObsDim.Constant{2}}) where {TD,T,TS,K}
-    @assert size(values, 1) == K
-    n = size(values, 2)
-    buffer = _array_type(TD,Val{1})(undef, n)
+function convertlabel(dst::VectorLabelEncoding{TD,K}, values::AbstractMatrix{T}, src::LabelEnc.OneOfK{TS,K};
+                      obsdim = LearnBase.default_obsdim(values)) where {TD,T,TS,K}
+    not_obsdim = mod1(obsdim + 1, 2)
+    @assert size(values, not_obsdim) == K
+    n = size(values, obsdim)
+    buffer = _array_type(TD, Val{1})(undef, n)
+    inds = argmax(values; dims = not_obsdim)
     @inbounds for i in 1:n
-        tind = 1
-        tmax = typemin(T)
-        for j in 1:K
-            tval = values[j,i]
-            if tval > tmax
-                tind = j
-                tmax = tval
-            end
-        end
-        buffer[i] = ind2label(tind, dst)
+        buffer[i] = ind2label(Tuple(inds[i])[not_obsdim], dst)
     end
-    buffer
-end
 
-function convertlabel(dst::VectorLabelEncoding{TD,K}, values::AbstractMatrix{T}, src::LabelEnc.OneOfK{TS,K}, ::ObsDim.First) where {TD,T,TS,K}
-    @assert size(values, 2) == K
-    n = size(values, 1)
-    buffer = _array_type(TD,Val{1})(undef, n)
-    @inbounds for i in 1:n
-        tind = 1
-        tmax = typemin(T)
-        for j in 1:K
-            tval = values[i,j]
-            if tval > tmax
-                tind = j
-                tmax = tval
-            end
-        end
-        buffer[i] = ind2label(tind, dst)
-    end
-    buffer
+    return buffer
 end
