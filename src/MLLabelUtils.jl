@@ -42,7 +42,7 @@ export
 
 include("labelencoding.jl")
 include("classify.jl")
-# include("convertlabel.jl")
-# include("labelmap.jl")
+include("convertlabel.jl")
+include("labelmap.jl")
 
 end # module
