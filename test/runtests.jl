@@ -1,5 +1,6 @@
 using Test
 using MappedArrays
+using LearnBase
 
 # check for ambiguities
 refambs = detect_ambiguities(Base, Core)

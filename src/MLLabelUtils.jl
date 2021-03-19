@@ -3,7 +3,26 @@ module MLLabelUtils
 using StatsBase
 using LearnBase
 using MappedArrays
-import Base.Broadcast: broadcastable
+import LearnBase: ind2label,
+                  label2ind,
+                  labeltype,
+                  label,
+                  nlabel,
+                  poslabel,
+                  neglabel,
+                  isposlabel,
+                  isneglabel,
+                  classify,
+                  classify!,
+                  convertlabel,
+                  labelmap,
+                  labelmap!,
+                  labelfreq,
+                  labelfreq!,
+                  labelmap2vec,
+                  labelenc,
+                  islabelenc,
+                  convertlabelview
 
 using LearnBase: ObsDim
 

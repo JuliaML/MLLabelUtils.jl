@@ -21,6 +21,8 @@ Multiclass to binary:
 """
 module LabelEnc
 
+using LearnBase
+
 """
     LabelEnc.FuzzyBinary <: LearnBase.LabelEncoding{Any,2,1}
 
@@ -296,6 +298,24 @@ LearnBase.ind2label(::Type{Val{I}}, ::LabelEnc.OneOfK{T,K}) where {T,I,K} =
 LearnBase.ind2label(::Type{Val{K}}, lm::LabelEnc.NativeLabels) where {K} = lm.label[K]
 
 """
+    nlabel(obj)::Int
+
+Returns the number of labels represented in the given object `obj`.
+
+# Examples
+```jldoctest
+julia> nlabel([:yes,:no,:yes,:yes])
+2
+```
+"""
+LearnBase.nlabel(::Type{<:LearnBase.BinaryLabelEncoding}) = 2
+LearnBase.nlabel(::Type{LearnBase.LabelEncoding{T,K,M}}) where {T,K,M} = Int(K)
+LearnBase.nlabel(::Type{Any}) = throw(ArgumentError("number of labels could not be inferred for the given type"))
+LearnBase.nlabel(::Type{T}) where {T} = nlabel(supertype(T))
+LearnBase.nlabel(::LearnBase.LabelEncoding{T,K}) where {T,K} = Int(K)
+LearnBase.nlabel(itr) = length(label(itr))
+
+"""
     poslabel(encoding)
 
 If the encoding is binary it will return the positive label of it.
@@ -307,7 +327,14 @@ julia> poslabel(LabelEnc.MarginBased(Float32))
 1.0f0
 ```
 """
-LearnBase.poslabel(lm::LabelEnc.BinaryLabelEncoding) = ind2label(Val{1}, lm)
+LearnBase.poslabel(lm::LearnBase.BinaryLabelEncoding) = ind2label(Val{1}, lm)
+function LearnBase.poslabel(values::AbstractArray)
+    lbl = label(values)
+    length(lbl) == 2 || throw(ArgumentError("The given object has more or less than two labels, thus poslabel is not defined."))
+    
+    return lbl[1]
+end
+
 """
     neglabel(encoding)
 
@@ -320,7 +347,13 @@ julia> neglabel(LabelEnc.MarginBased(Float32))
 -1.0f0
 ```
 """
-LearnBase.neglabel(lm::LabelEnc.BinaryLabelEncoding) = ind2label(Val{2}, lm)
+LearnBase.neglabel(lm::LearnBase.BinaryLabelEncoding) = ind2label(Val{2}, lm)
+function LearnBase.neglabel(values::AbstractArray)
+    lbl = label(values)
+    length(lbl) == 2 || throw(ArgumentError("The given object has more or less than two labels, thus neglabel is not defined."))
+    
+    return lbl[2]
+end
 
 """
     label(obj)::Vector
@@ -343,10 +376,34 @@ julia> label(LabelEnc.ZeroOne())
     0.0
 ```
 """
-LearnBase.label(lm::LabelEnc.BinaryLabelEncoding{T,1}) where {T} = [poslabel(lm), neglabel(lm)]
+LearnBase.label(lm::LearnBase.BinaryLabelEncoding{T,1}) where {T} = [poslabel(lm), neglabel(lm)]
 LearnBase.label(::LabelEnc.Indices{T,K}) where {T,K} = collect(T(1):T(K))
 LearnBase.label(::LabelEnc.OneOfK{T,K}) where {T,K} = collect(1:K)
 LearnBase.label(lm::LabelEnc.NativeLabels) = lm.label
+LearnBase.label(itr) = _arrange_label(unique(itr))
+LearnBase.label(A::AbstractVector) = _arrange_label(unique(A))
+LearnBase.label(A::AbstractArray{T,N}) where {T,N} = throw(MethodError(label, (A,)))
+LearnBase.label(A::AbstractMatrix{<:Union{Number,Bool}}; obsdim = LearnBase.default_obsdim(A)) =
+    collect(1:size(A, mod1(obsdim + 1, 2)))
+
+# make sure pos label is first
+_arrange_label(lbl::Vector) = lbl
+_arrange_label(::Vector{<:Bool}) = [true,false]
+function _arrange_label(lbl::Vector{T}) where {T<:Number}
+    if length(lbl) == 2
+        if minimum(lbl) == 0 && maximum(lbl) == 1
+            lbl[1] = T(1)
+            lbl[2] = T(0)
+        elseif minimum(lbl) == -1 && maximum(lbl) == 1
+            lbl[1] = T(1)
+            lbl[2] = T(-1)
+        elseif minimum(lbl) == 1 && maximum(lbl) == 2
+            lbl[1] = T(1)
+            lbl[2] = T(2)
+        end
+    end
+    lbl
+end
 
 """
     labeltype(::Type{<:LabelEncoding})
@@ -357,6 +414,12 @@ LearnBase.labeltype(::Type{LabelEnc.ZeroOne}) = Number
 LearnBase.labeltype(::Type{LabelEnc.MarginBased}) = Number
 LearnBase.labeltype(::Type{LabelEnc.Indices}) = Number
 LearnBase.labeltype(::Type{LabelEnc.OneOfK}) = Number
+LearnBase.labeltype(::Type{LearnBase.MatrixLabelEncoding{T}}) where {T} = T
+LearnBase.labeltype(::Type{LearnBase.VectorLabelEncoding{T}}) where {T} = T
+LearnBase.labeltype(::Type{LearnBase.LabelEncoding{T,K,M}}) where {T,K,M} = T
+LearnBase.labeltype(::Type{Any}) = Any
+LearnBase.labeltype(::Type{T}) where {T} = labeltype(supertype(T))
+LearnBase.labeltype(::LearnBase.LabelEncoding{T}) where {T} = T
 
 # What it means to be a positive label
 """
@@ -471,31 +534,33 @@ function LearnBase.islabelenc(targets::AbstractVector, lm::LabelEnc.NativeLabels
 end
 
 function LearnBase.islabelenc(targets::AbstractMatrix{<:Union{Bool,Number}}, lm::LabelEnc.OneOfK;
-                    obsdim = default_obsdim(targets))
+                              obsdim = default_obsdim(targets))
     islabelenc(targets, typeof(lm); obsdim = obsdim)
 end
 
-function LearnBase.islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T}};
-                    obsdim = default_obsdim(targets)) where {T<:Union{Bool,Number}}
+LearnBase.islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T}};
+                     obsdim = default_obsdim(targets)) where {T<:Union{Bool,Number}} =
     islabelenc(targets, LabelEnc.OneOfK; obsdim = obsdim)
-end
 
-function LearnBase.islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{<:Any, K}};
-                    obsdim = default_obsdim(targets)) where {T<:Union{Bool,Number}, K}
-    k, n = (obsdim == 1) ? size(targets) : reverse(size(targets))
+LearnBase.islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK{T, K}};
+                     obsdim = default_obsdim(targets)) where {T<:Union{Bool,Number}, K} =
+    (size(targets, mod1(obsdim + 1, 2)) != K) ? false :
+                                                islabelenc(targets, LabelEnc.OneOfK; obsdim = obsdim)
 
-    (k != K) && return false
+function LearnBase.islabelenc(targets::AbstractMatrix{T}, ::Type{LabelEnc.OneOfK};
+                              obsdim = default_obsdim(targets)) where {T<:Union{Bool,Number}}
+    k, n = (obsdim != 1) ? size(targets) : reverse(size(targets))
 
     @inbounds for i in 1:n
         found = false
         for j in 1:k
-            tcur = targets[j,i]
-            if tcur == T(1)
+            tcur = (obsdim == 1) ? targets[i,j] : targets[j,i]
+            if tcur == one(T)
                 if found
                     return false
                 end
                 found = true
-            elseif tcur == T(0)
+            elseif tcur == zero(T)
                 # this is fine
             else
                 return false
@@ -510,7 +575,7 @@ end
 
 # Automatic determination of label mode
 LearnBase.labelenc(target) = _ambiguous()
-LearnBase.labelenc(targets::AbstractVector{Bool}) = LabelEnc.TrueFalse()
+LearnBase.labelenc(::AbstractVector{Bool}) = LabelEnc.TrueFalse()
 
 function LearnBase.labelenc(targets::AbstractVector)
     lbls = label(targets)
@@ -549,5 +614,5 @@ function LearnBase.labelenc(targets::AbstractVector{T}) where {T<:Number}
 end
 
 # TODO: Multilabel (Matrix as targets)
-LearnBase.labelenc(targets::AbstractMatrix{<:Number}; obsdim = default_obsdim(targets)) =
-    LabelEnc.OneOfK(T, size(targets, obsdim))
+LearnBase.labelenc(targets::AbstractMatrix{T}; obsdim = default_obsdim(targets)) where {T<:Number} =
+    LabelEnc.OneOfK(T, size(targets, mod1(obsdim + 1, 2)))
