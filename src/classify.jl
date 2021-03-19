@@ -24,6 +24,8 @@ LearnBase.classify(value::T, cutoff::Number) where {T<:Number} =
 LearnBase.classify(value::Number, ::Type{LabelEnc.ZeroOne}) = classify(value, 0.5)
 LearnBase.classify(value::Number, lm::LabelEnc.ZeroOne{R}) where {R} =
     R(classify(value, lm.cutoff))
+LearnBase.classify(values::AbstractVector{T}, cutoff::Number) where {T} =
+    classify.(values, cutoff)::Vector{T}
 
 ## Margin
 
@@ -32,7 +34,37 @@ _sign(value::T) where {T} = ifelse(signbit(value), T(-1), T(1))::T
 LearnBase.classify(value::Number, ::Type{LabelEnc.MarginBased}) = _sign(value)
 LearnBase.classify(value::Number, lm::LabelEnc.MarginBased{R}) where {R} = R(_sign(value))
 
-## broadcast
+for KIND in (:(LabelEnc.MarginBased), :(LabelEnc.ZeroOne))
+    @eval begin
+        function LearnBase.classify(values::AbstractVector{T}, ::Type{($KIND)}) where {T}
+            classify.(values, ($KIND))::Vector{T}
+        end
+        function LearnBase.classify(values::AbstractVector{T}, lm::L) where {T,L<:($KIND)}
+            classify.(values, lm)::Vector{labeltype(L)}
+        end
+    end
+end
+
+## OneOfK
+
+LearnBase.classify(values::AbstractVector, ::Type{<:LabelEnc.OneOfK}) = argmax(values)
+LearnBase.classify(values::AbstractVector, lm::LabelEnc.OneOfK) = classify(values, typeof(lm))
+
+LearnBase.classify(values::AbstractMatrix, T::Type{<:LabelEnc.OneOfK}; obsdim = default_obsdim(values)) =
+    classify!(Vector{Int}(undef, size(values, obsdim)), values, T; obsdim = obsdim)
+LearnBase.classify(values::AbstractMatrix, lm::LabelEnc.OneOfK; obsdim = default_obsdim(values)) =
+    classify(values, typeof(lm); obsdim=obsdim)
+
+function LearnBase.classify!(buffer::AbstractVector, values::AbstractMatrix,
+                             T::Type{<:LabelEnc.OneOfK}; obsdim = default_obsdim(values))
+    for (i, v) in enumerate(eachslice(values; dims = obsdim))
+        buffer[i] = classify(v, T)
+    end
+
+    return buffer
+end
+LearnBase.classify!(buffer, values::AbstractMatrix, lm::LabelEnc.OneOfK; obsdim = default_obsdim(obsdim)) =
+    classify!(buffer, values, typeof(lm); obsdim=obsdim)
 
 """
     classify!(out, x, encoding)
@@ -53,38 +85,3 @@ function LearnBase.classify!(buffer::AbstractVector, values::AbstractVector, lm)
     
     return buffer
 end
-
-LearnBase.classify(values::AbstractVector{T}, cutoff::Number) where {T} =
-    classify.(values, cutoff)::Vector{T}
-
-for KIND in (:(LabelEnc.MarginBased), :(LabelEnc.ZeroOne))
-    @eval begin
-        function LearnBase.classify(values::AbstractVector{T}, ::Type{($KIND)}) where {T}
-            classify.(values, ($KIND))::Vector{T}
-        end
-        function LearnBase.classify(values::AbstractVector{T}, lm::L) where {T,L<:($KIND)}
-            classify.(values, lm)::Vector{labeltype(L)}
-        end
-    end
-end
-
-## OneOfK
-
-LearnBase.classify(values::AbstractVector, ::Type{<:LabelEnc.OneOfK}) = argmax(values)
-LearnBase.classify(values::AbstractVector, lm::LabelEnc.OneOfK) = classify(values, typeof(lm))
-
-LearnBase.classify!(buffer, values::AbstractMatrix, lm::LabelEnc.OneOfK; obsdim = default_obsdim(obsdim)) =
-    classify!(buffer, values, typeof(lm), obsdim)
-
-LearnBase.classify(values::AbstractMatrix, lm::LabelEnc.OneOfK; obsdim = default_obsdim(values)) =
-    classify(values, typeof(lm), obsdim)
-
-function LearnBase.classify!(buffer::AbstractVector, values::AbstractMatrix,
-                             T::Type{<:LabelEnc.OneOfK}; obsdim = default_obsdim(values))
-    map!(v -> classify(v, T), buffer, eachslice(values; dims = obsdim))
-
-    return buffer
-end
-
-classify(values::AbstractMatrix, ::Type{<:LabelEnc.OneOfK}; obsdim = default_obsdim(values)) =
-    classify!(Vector{Int}(undef, size(values, obsdim)), values; obsdim = obsdim)

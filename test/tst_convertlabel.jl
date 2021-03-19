@@ -253,28 +253,14 @@ println("<HEARTBEAT>")
             @test typeof(res) <: typeof(dst_x)
             @test res == dst_x
 
-            # positional obsdim
-            res = @inferred convertlabel(dst_lm, x, LabelEnc.OneOfK(2), ObsDim.Constant(2))
-            @test typeof(res) <: typeof(dst_x)
-            @test res == dst_x
-            res = @inferred convertlabel(dst_lm, x, LabelEnc.OneOfK(2), ObsDim.Last())
-            @test typeof(res) <: typeof(dst_x)
-            @test res == dst_x
-            res = @inferred convertlabel(dst_lm, xt, LabelEnc.OneOfK(2), ObsDim.First())
-            @test typeof(res) <: typeof(dst_x)
-            @test res == dst_x
-
             # kw obsdim
-            res = convertlabel(dst_lm, x, obsdim=2)
+            res = convertlabel(dst_lm, x; obsdim=2)
             @test typeof(res) <: typeof(dst_x)
             @test res == dst_x
-            res = convertlabel(dst_lm, x, LabelEnc.OneOfK(2), obsdim=:last)
+            res = convertlabel(dst_lm, xt; obsdim=1)
             @test typeof(res) <: typeof(dst_x)
             @test res == dst_x
-            res = convertlabel(dst_lm, xt, obsdim=1)
-            @test typeof(res) <: typeof(dst_x)
-            @test res == dst_x
-            res = convertlabel(dst_lm, xt, LabelEnc.OneOfK(2), obsdim=1)
+            res = convertlabel(dst_lm, xt, LabelEnc.OneOfK(2); obsdim=1)
             @test typeof(res) <: typeof(dst_x)
             @test res == dst_x
         end
@@ -304,32 +290,24 @@ println("<HEARTBEAT>")
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x
 
-                # positional obsdim
-                res = @inferred convertlabel(dst_lm, src_x, src_lm, ObsDim.Constant(2))
-                @test typeof(res) <: typeof(dst_x)
-                @test res == dst_x
-                res = @inferred convertlabel(dst_lm, src_x, src_lm, ObsDim.Last())
-                @test typeof(res) <: typeof(dst_x)
-                @test res == dst_x
-                res = @inferred convertlabel(dst_lm, src_x, src_lm, ObsDim.First())
                 # TODO in julia 0.7 we take transposition seriously:
                 #   typeof(res) == BitArray{2}
                 #   typeof(dst_x') == LinearAlgebra.Adjoint{Bool,BitArray{2}}
                 
                 @test typeof(res) <: typeof(dst_x)
-                @test res == dst_x'
+                @test res == dst_x
 
                 # kw obsdim
-                res = convertlabel(dst_lm, src_x, obsdim=:last)
+                res = convertlabel(dst_lm, src_x; obsdim=2)
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x
-                res = convertlabel(dst_lm, src_x, src_lm, obsdim=:last)
+                res = convertlabel(dst_lm, src_x, src_lm; obsdim=2)
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x
-                res = convertlabel(dst_lm, src_x, obsdim=1)
+                res = convertlabel(dst_lm, src_x; obsdim=1)
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x'
-                res = convertlabel(dst_lm, src_x, src_lm, obsdim=1)
+                res = convertlabel(dst_lm, src_x, src_lm; obsdim=1)
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x'
             end
@@ -362,44 +340,30 @@ println("<HEARTBEAT>")
             @test typeof(res) <: typeof(dst_x)
             @test res == dst_x
 
-            # positional obsdim
-            res = @inferred convertlabel(dst_lm, x, LabelEnc.OneOfK(3), ObsDim.Constant(2))
-            @test typeof(res) <: typeof(dst_x)
-            @test res == dst_x
-            res = @inferred convertlabel(dst_lm, x, LabelEnc.OneOfK(3), ObsDim.Last())
-            @test typeof(res) <: typeof(dst_x)
-            @test res == dst_x
-            res = @inferred convertlabel(dst_lm, xt, LabelEnc.OneOfK(3), ObsDim.First())
-            @test typeof(res) <: typeof(dst_x)
-            @test res == dst_x
-
             # kw obsdim
-            res = convertlabel(dst_lm, x, obsdim=2)
+            res = convertlabel(dst_lm, x; obsdim=2)
             @test typeof(res) <: typeof(dst_x)
             @test res == dst_x
-            res = convertlabel(dst_lm, x, LabelEnc.OneOfK(3), obsdim=:last)
+            res = convertlabel(dst_lm, x, LabelEnc.OneOfK(3); obsdim=2)
             @test typeof(res) <: typeof(dst_x)
             @test res == dst_x
-            res = convertlabel(dst_lm, xt, obsdim=1)
+            res = convertlabel(dst_lm, xt; obsdim=1)
             @test typeof(res) <: typeof(dst_x)
             @test res == dst_x
-            res = convertlabel(dst_lm, xt, LabelEnc.OneOfK(3), obsdim=1)
+            res = convertlabel(dst_lm, xt, LabelEnc.OneOfK(3); obsdim=1)
             @test typeof(res) <: typeof(dst_x)
             @test res == dst_x
         end
     end
     # To OneOfK
     @testset "implicit NativeLabels" begin
-        res = @inferred convertlabel(LabelEnc.OneOfK(Int,3), [:a,:b,:c,:b,:c,:a], [:a,:b,:c], ObsDim.Constant(1))
+        res = @inferred convertlabel(LabelEnc.OneOfK(Int,3), [:a,:b,:c,:b,:c,:a], [:a,:b,:c]; obsdim=1)
         @test typeof(res) <: typeof(x)
         @test res == x'
-        res = convertlabel(LabelEnc.OneOfK, [:a,:b,:c,:b,:c,:a], [:a,:b,:c], ObsDim.Constant(1))
+        res = convertlabel(LabelEnc.OneOfK, [:a,:b,:c,:b,:c,:a], [:a,:b,:c]; obsdim=1)
         @test typeof(res) <: typeof(x)
         @test res == x'
-        res = convertlabel(LabelEnc.OneOfK{Float64}, [:a,:b,:c,:b,:c,:a], [:a,:b,:c], ObsDim.Constant(1))
-        @test typeof(res) <: Matrix{Float64}
-        @test res == x'
-        res = convertlabel(LabelEnc.OneOfK{Float64}, [:a,:b,:c,:b,:c,:a], [:a,:b,:c], obsdim=1)
+        res = convertlabel(LabelEnc.OneOfK{Float64}, [:a,:b,:c,:b,:c,:a], [:a,:b,:c]; obsdim=1)
         @test typeof(res) <: Matrix{Float64}
         @test res == x'
     end
@@ -418,28 +382,17 @@ println("<HEARTBEAT>")
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x
 
-                # positional obsdim
-                res = @inferred convertlabel(dst_lm, src_x, src_lm, ObsDim.Constant(2))
-                @test typeof(res) <: typeof(dst_x)
-                @test res == dst_x
-                res = @inferred convertlabel(dst_lm, src_x, src_lm, ObsDim.Last())
-                @test typeof(res) <: typeof(dst_x)
-                @test res == dst_x
-                res = @inferred convertlabel(dst_lm, src_x, src_lm, ObsDim.First())
-                @test typeof(res) <: typeof(dst_x)
-                @test res == dst_x'
-
                 # kw obsdim
-                res = convertlabel(dst_lm, src_x, obsdim=:last)
+                res = convertlabel(dst_lm, src_x; obsdim=2)
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x
-                res = convertlabel(dst_lm, src_x, src_lm, obsdim=:last)
+                res = convertlabel(dst_lm, src_x, src_lm; obsdim=2)
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x
-                res = convertlabel(dst_lm, src_x, obsdim=1)
+                res = convertlabel(dst_lm, src_x; obsdim=1)
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x'
-                res = convertlabel(dst_lm, src_x, src_lm, obsdim=1)
+                res = convertlabel(dst_lm, src_x, src_lm; obsdim=1)
                 @test typeof(res) <: typeof(dst_x)
                 @test res == dst_x'
             end

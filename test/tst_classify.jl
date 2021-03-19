@@ -101,38 +101,24 @@ end
               1 0 2 1 2 1 2;
               0 2 1 0 0 2 0]
         @test @inferred(classify(A, LabelEnc.OneOfK)) == [1,3,2,1,2,3,2]
-        @test @inferred(classify(A, LabelEnc.OneOfK, ObsDim.Last())) == [1,3,2,1,2,3,2]
-        @test @inferred(classify(A, LabelEnc.OneOfK, obsdim=2)) == [1,3,2,1,2,3,2]
+        @test @inferred(classify(A, LabelEnc.OneOfK; obsdim=2)) == [1,3,2,1,2,3,2]
         @test @inferred(classify(A, LabelEnc.OneOfK(Val{3}))) == [1,3,2,1,2,3,2]
-        @test @inferred(classify(A, LabelEnc.OneOfK(Val{3}), ObsDim.Last())) == [1,3,2,1,2,3,2]
-        @test @inferred(classify(A, LabelEnc.OneOfK(Val{3}), obsdim=2)) == [1,3,2,1,2,3,2]
+        @test @inferred(classify(A, LabelEnc.OneOfK(Val{3}); obsdim=2)) == [1,3,2,1,2,3,2]
         @test eltype(classify(A, LabelEnc.OneOfK)) <: Int
-        @test eltype(classify(A, LabelEnc.OneOfK, ObsDim.Last())) <: Int
-        @test eltype(classify(A, LabelEnc.OneOfK, obsdim=2)) <: Int
+        @test eltype(classify(A, LabelEnc.OneOfK; obsdim=2)) <: Int
         @test eltype(classify(A, LabelEnc.OneOfK(Val{3}))) <: Int
-        @test eltype(classify(A, LabelEnc.OneOfK(Val{3}), ObsDim.Last())) <: Int
-        @test eltype(classify(A, LabelEnc.OneOfK(Val{3}), obsdim=2)) <: Int
+        @test eltype(classify(A, LabelEnc.OneOfK(Val{3}); obsdim=2)) <: Int
         buffer = zeros(7)
-        @test @inferred(classify!(buffer, A, LabelEnc.OneOfK(3), ObsDim.Last())) == [1,3,2,1,2,3,2]
-        @test buffer == [1,3,2,1,2,3,2]
-        buffer = zeros(7)
-        @test @inferred(classify!(buffer, A, LabelEnc.OneOfK(3); obsdim=:last)) == [1,3,2,1,2,3,2]
+        @test @inferred(classify!(buffer, A, LabelEnc.OneOfK(3); obsdim=2)) == [1,3,2,1,2,3,2]
         @test buffer == [1,3,2,1,2,3,2]
         At = A'
-        @test @inferred(classify(At, LabelEnc.OneOfK, ObsDim.First())) == [1,3,2,1,2,3,2]
-        @test @inferred(classify(At, LabelEnc.OneOfK, obsdim=1)) == [1,3,2,1,2,3,2]
-        @test @inferred(classify(At, LabelEnc.OneOfK(Val{3}), ObsDim.First())) == [1,3,2,1,2,3,2]
-        @test @inferred(classify(At, LabelEnc.OneOfK(Val{3}), obsdim=1)) == [1,3,2,1,2,3,2]
-        @test eltype(classify(At, LabelEnc.OneOfK, ObsDim.First())) <: Int
-        @test eltype(classify(At, LabelEnc.OneOfK, obsdim=1)) <: Int
+        @test @inferred(classify(At, LabelEnc.OneOfK; obsdim=1)) == [1,3,2,1,2,3,2]
+        @test @inferred(classify(At, LabelEnc.OneOfK(Val{3}); obsdim=1)) == [1,3,2,1,2,3,2]
+        @test eltype(classify(At, LabelEnc.OneOfK; obsdim=1)) <: Int
         @test eltype(classify(At, LabelEnc.OneOfK(Val{3}))) <: Int
-        @test eltype(classify(At, LabelEnc.OneOfK(Val{3}), ObsDim.First())) <: Int
-        @test eltype(classify(At, LabelEnc.OneOfK(Val{3}), obsdim=1)) <: Int
+        @test eltype(classify(At, LabelEnc.OneOfK(Val{3}); obsdim=1)) <: Int
         buffer = zeros(7)
-        @test @inferred(classify!(buffer, At, LabelEnc.OneOfK(3), ObsDim.First())) == [1,3,2,1,2,3,2]
-        @test buffer == [1,3,2,1,2,3,2]
-        buffer = zeros(7)
-        @test @inferred(classify!(buffer, At, LabelEnc.OneOfK, obsdim=1)) == [1,3,2,1,2,3,2]
+        @test @inferred(classify!(buffer, At, LabelEnc.OneOfK; obsdim=1)) == [1,3,2,1,2,3,2]
         @test buffer == [1,3,2,1,2,3,2]
     end
 end
