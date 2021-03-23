@@ -3,9 +3,26 @@ module MLLabelUtils
 using StatsBase
 using LearnBase
 using MappedArrays
-import Base.Broadcast: broadcastable
-
-using LearnBase: ObsDim
+import LearnBase: ind2label,
+                  label2ind,
+                  labeltype,
+                  label,
+                  nlabel,
+                  poslabel,
+                  neglabel,
+                  isposlabel,
+                  isneglabel,
+                  classify,
+                  classify!,
+                  convertlabel,
+                  labelmap,
+                  labelmap!,
+                  labelfreq,
+                  labelfreq!,
+                  labelmap2vec,
+                  labelenc,
+                  islabelenc,
+                  convertlabelview
 
 export
 
@@ -22,7 +39,6 @@ export
     isposlabel,
     isneglabel,
 
-    ObsDim,
     classify,
     classify!,
 
@@ -41,7 +57,6 @@ export
 
     convertlabelview
 
-include("learnbase.jl")
 include("labelencoding.jl")
 include("classify.jl")
 include("convertlabel.jl")

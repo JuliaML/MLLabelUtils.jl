@@ -33,8 +33,8 @@
         @test_throws MethodError label(rand(2,2,3))
         @test_throws MethodError label([:yes :no; :yes :no])
         @test @inferred(label(rand(5,10))) == collect(1:5)
-        @test @inferred(label(rand(5,10), ObsDim.First())) == collect(1:10)
-        @test label(rand(5,10), obsdim=1) == collect(1:10)
+        @test @inferred(label(rand(5,10); obsdim=1)) == collect(1:10)
+        @test label(rand(5,10); obsdim=1) == collect(1:10)
     end
 end
 
@@ -45,21 +45,21 @@ end
     end
 
     @testset "FuzzyBinary" begin
-        @test LabelEnc.FuzzyBinary <: MLLabelUtils.BinaryLabelEncoding
+        @test LabelEnc.FuzzyBinary <: LearnBase.BinaryLabelEncoding
         @test @inferred(nlabel(LabelEnc.FuzzyBinary())) === 2
         @test @inferred(labeltype(LabelEnc.FuzzyBinary)) <: Any
         @test_throws MethodError label(LabelEnc.FuzzyBinary())
     end
 
     @testset "TrueFalse" begin
-        @test LabelEnc.TrueFalse <: MLLabelUtils.BinaryLabelEncoding
+        @test LabelEnc.TrueFalse <: LearnBase.BinaryLabelEncoding
         @test @inferred(nlabel(LabelEnc.TrueFalse)) === 2
         @test @inferred(labeltype(LabelEnc.TrueFalse)) <: Bool
         @test typeof(@inferred(LabelEnc.TrueFalse())) <: LabelEnc.TrueFalse
     end
 
     @testset "ZeroOne" begin
-        @test LabelEnc.ZeroOne <: MLLabelUtils.BinaryLabelEncoding
+        @test LabelEnc.ZeroOne <: LearnBase.BinaryLabelEncoding
         @test @inferred(nlabel(LabelEnc.ZeroOne)) === 2
         @test @inferred(nlabel(LabelEnc.ZeroOne{Float32})) === 2
         @test @inferred(labeltype(LabelEnc.ZeroOne)) == Number
@@ -84,7 +84,7 @@ end
     end
 
     @testset "MarginBased" begin
-        @test LabelEnc.MarginBased <: MLLabelUtils.BinaryLabelEncoding
+        @test LabelEnc.MarginBased <: LearnBase.BinaryLabelEncoding
         @test @inferred(nlabel(LabelEnc.MarginBased)) === 2
         @test @inferred(nlabel(LabelEnc.MarginBased{Float32})) === 2
         @test @inferred(labeltype(LabelEnc.MarginBased)) == Number
@@ -96,7 +96,7 @@ end
     end
 
     @testset "OneVsRest" begin
-        @test LabelEnc.OneVsRest <: MLLabelUtils.BinaryLabelEncoding
+        @test LabelEnc.OneVsRest <: LearnBase.BinaryLabelEncoding
         @test @inferred(nlabel(LabelEnc.OneVsRest)) === 2
         @test @inferred(nlabel(LabelEnc.OneVsRest{Float32})) === 2
         @test @inferred(labeltype(LabelEnc.OneVsRest)) == Any
@@ -116,7 +116,7 @@ end
     end
 
     @testset "Indices" begin
-        @test LabelEnc.Indices <: MLLabelUtils.LabelEncoding
+        @test LabelEnc.Indices <: LearnBase.LabelEncoding
         @test_throws ArgumentError nlabel(LabelEnc.Indices)
         @test @inferred(nlabel(LabelEnc.Indices{Float32,4})) === 4
         @test @inferred(labeltype(LabelEnc.Indices)) == Number
@@ -125,7 +125,7 @@ end
         @test_throws TypeError LabelEnc.Indices(Val{3.})
         @test typeof(@inferred(LabelEnc.Indices(Val{3}))) <: LabelEnc.Indices{Int,3}
         @test typeof(@inferred(LabelEnc.Indices(Val{2}))) <: LabelEnc.Indices{Int,2}
-        @test typeof(@inferred(LabelEnc.Indices(Val{2}))) <: MLLabelUtils.BinaryLabelEncoding
+        @test typeof(@inferred(LabelEnc.Indices(Val{2}))) <: LearnBase.BinaryLabelEncoding
         @test typeof(@inferred(LabelEnc.Indices(Float32,Val{5}))) <: LabelEnc.Indices{Float32,5}
         @test typeof(LabelEnc.Indices(3)) <: LabelEnc.Indices{Int,3}
         @test typeof(LabelEnc.Indices(3.)) <: LabelEnc.Indices{Int,3}
@@ -134,7 +134,7 @@ end
     end
 
     @testset "OneOfK" begin
-        @test LabelEnc.OneOfK <: MLLabelUtils.LabelEncoding
+        @test LabelEnc.OneOfK <: LearnBase.LabelEncoding
         @test_throws ArgumentError nlabel(LabelEnc.OneOfK)
         @test @inferred(nlabel(LabelEnc.OneOfK{Float32,4})) === 4
         @test @inferred(labeltype(LabelEnc.OneOfK)) == Number
@@ -143,7 +143,7 @@ end
         @test_throws TypeError LabelEnc.OneOfK(Val{3.})
         @test typeof(@inferred(LabelEnc.OneOfK(Val{3}))) <: LabelEnc.OneOfK{Int,3}
         @test typeof(@inferred(LabelEnc.OneOfK(Val{2}))) <: LabelEnc.OneOfK{Int,2}
-        @test typeof(@inferred(LabelEnc.OneOfK(Val{2}))) <: MLLabelUtils.BinaryLabelEncoding
+        @test typeof(@inferred(LabelEnc.OneOfK(Val{2}))) <: LearnBase.BinaryLabelEncoding
         @test typeof(@inferred(LabelEnc.OneOfK(Float32,Val{5}))) <: LabelEnc.OneOfK{Float32,5}
         @test typeof(LabelEnc.OneOfK(3)) <: LabelEnc.OneOfK{Int,3}
         @test typeof(LabelEnc.OneOfK(3.)) <: LabelEnc.OneOfK{Int,3}
@@ -152,7 +152,7 @@ end
     end
 
     @testset "NativeLabels" begin
-        @test LabelEnc.NativeLabels <: MLLabelUtils.LabelEncoding
+        @test LabelEnc.NativeLabels <: LearnBase.LabelEncoding
         @test_throws ArgumentError nlabel(LabelEnc.NativeLabels)
         @test @inferred(nlabel(LabelEnc.NativeLabels{Float32,4})) === 4
         @test @inferred(labeltype(LabelEnc.NativeLabels)) == Any
@@ -169,15 +169,15 @@ end
         @test typeof(@inferred(LabelEnc.NativeLabels([5,2,3],Val{3}))) <: LabelEnc.NativeLabels{Int,3}
         @test typeof(@inferred(LabelEnc.NativeLabels{Symbol,4}([:a,:b,:c,:d]))) <: LabelEnc.NativeLabels{Symbol,4}
         @test typeof(@inferred(LabelEnc.NativeLabels([:a,:b,:c,:d],Val{4}))) <: LabelEnc.NativeLabels{Symbol,4}
-        @test typeof(@inferred(LabelEnc.NativeLabels([1,2],Val{2}))) <: MLLabelUtils.BinaryLabelEncoding
+        @test typeof(@inferred(LabelEnc.NativeLabels([1,2],Val{2}))) <: LearnBase.BinaryLabelEncoding
 
         @test typeof(LabelEnc.NativeLabels(oov->0, 0:3)) <: LabelEnc.NativeLabels{Int,4}
         @test typeof(LabelEnc.NativeLabels(oov->:oov, [:oov, :a,:b,:c,:d])) <: LabelEnc.NativeLabels{Symbol,5}
-        @test typeof(@inferred(LabelEnc.NativeLabels(oov->1, [1,2],Val{2}))) <: MLLabelUtils.BinaryLabelEncoding
+        @test typeof(@inferred(LabelEnc.NativeLabels(oov->1, [1,2],Val{2}))) <: LearnBase.BinaryLabelEncoding
         
         @test typeof(LabelEnc.NativeLabels(0, 0:3)) <: LabelEnc.NativeLabels{Int,4}
         @test typeof(LabelEnc.NativeLabels(:oov, [:oov, :a,:b,:c,:d])) <: LabelEnc.NativeLabels{Symbol,5}
-        @test typeof(@inferred(LabelEnc.NativeLabels(1, [1,2],Val{2}))) <: MLLabelUtils.BinaryLabelEncoding
+        @test typeof(@inferred(LabelEnc.NativeLabels(1, [1,2],Val{2}))) <: LearnBase.BinaryLabelEncoding
     end
 end
 
@@ -419,7 +419,7 @@ end
                 lm = labelenc(targets)
                 @test lm == labelenc(split("yes yes no"))
                 @test labeltype(lm) <: eltype(targets)
-                @test typeof(lm) <: MLLabelUtils.BinaryLabelEncoding
+                @test typeof(lm) <: LearnBase.BinaryLabelEncoding
                 @test typeof(lm) <: LabelEnc.NativeLabels{eltype(targets),length(unique(targets))}
                 @test_throws KeyError label2ind(:yes, lm)
                 @test_throws KeyError label2ind(2, lm)
@@ -437,7 +437,7 @@ end
             for targets in ([:yes,:no,:yes], ["yes","yes","no"], 3:-3:0, [3,-2], [1.4,1.3])
                 lm = labelenc(targets)
                 @test labeltype(lm) <: eltype(targets)
-                @test typeof(lm) <: MLLabelUtils.BinaryLabelEncoding
+                @test typeof(lm) <: LearnBase.BinaryLabelEncoding
                 @test typeof(lm) <: LabelEnc.NativeLabels{eltype(targets),length(unique(targets))}
                 @test @inferred(isposlabel(label(lm)[1], lm)) === true
                 @test @inferred(isposlabel(label(lm)[2], lm)) === false
@@ -571,23 +571,19 @@ end
     x2 = [1 0 1 0 0 1; 0 1 0 1 1 0]
     x3 = [1 0 0 0 0 1; 0 1 0 1 0 0; 0 0 1 0 1 0]
     for (dst_lm, dst_x) in (
-            (LabelEnc.OneOfK,Array{Int32}(x3)),
-            (LabelEnc.OneOfK{Float32},Array{Float32}(x3)),
+            (LabelEnc.OneOfK(Int32,3),Array{Int32}(x3)),
+            (LabelEnc.OneOfK(Float32,3),Array{Float32}(x3)),
             (LabelEnc.OneOfK(Bool,3),Array{Bool}(x3)),
-            (LabelEnc.OneOfK,Array{Bool}(x2)),
-            (LabelEnc.OneOfK{Float32},Array{Float32}(x2)),
+            (LabelEnc.OneOfK(Bool,2),Array{Bool}(x2)),
+            (LabelEnc.OneOfK(Float32,2),Array{Float32}(x2)),
             (LabelEnc.OneOfK(UInt8,2),Array{UInt8}(x2)),
         )
         # check is the format is correctly recognized
         @test @inferred(islabelenc(dst_x, dst_lm)) == true
         @test @inferred(islabelenc(dst_x', dst_lm)) == false
-        @test @inferred(islabelenc(dst_x, dst_lm, obsdim = 2)) == true
-        @test @inferred(islabelenc(dst_x', dst_lm, obsdim = 1)) == true
-        @test @inferred(islabelenc(dst_x, dst_lm, ObsDim.Last())) == true
-        @test @inferred(islabelenc(dst_x', dst_lm, ObsDim.First())) == true
+        @test @inferred(islabelenc(dst_x, dst_lm; obsdim = 2)) == true
+        @test @inferred(islabelenc(dst_x', dst_lm; obsdim = 1)) == true
         @test @inferred(islabelenc(dst_x', dst_lm, obsdim = 2)) == false
         @test @inferred(islabelenc(dst_x, dst_lm, obsdim = 1)) == false
-        @test @inferred(islabelenc(dst_x', dst_lm, ObsDim.Last())) == false
-        @test @inferred(islabelenc(dst_x, dst_lm, ObsDim.First())) == false
     end
 end
