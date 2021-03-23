@@ -24,8 +24,6 @@ import LearnBase: ind2label,
                   islabelenc,
                   convertlabelview
 
-using LearnBase: ObsDim
-
 export
 
     ind2label,
