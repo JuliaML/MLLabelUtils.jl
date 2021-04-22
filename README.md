@@ -4,7 +4,7 @@ _Utility package for working with classification targets. As such, this package 
 
 | **Package Status** | **Package Evaluator** | **Build Status**  |
 |:------------------:|:---------------------:|:-----------------:|
-| [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md) [![Documentation Status](https://img.shields.io/badge/docs-latest-blue.svg?style=flat)](http://mllabelutilsjl.readthedocs.io/en/latest/?badge=latest) | [![PkgEval][pkgeval-img]][pkgeval-url] | [![Build Status](https://travis-ci.org/JuliaML/MLLabelUtils.jl.svg?branch=master)](https://travis-ci.org/JuliaML/MLLabelUtils.jl) [![Coverage Status](https://coveralls.io/repos/JuliaML/MLLabelUtils.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaML/MLLabelUtils.jl?branch=master) |
+| [![License][license-img]][license-url] [![Documentation Status][docs-dev-img]][docs-dev-url] | [![PkgEval][pkgeval-img]][pkgeval-url] | [![][github-action-img]][github-action-url] [![Coverage Status][coveralls-img]][coveralls-url] |
 
 ## Introduction
 
@@ -298,3 +298,9 @@ This code is free to use under the terms of the MIT license
 
 [pkgeval-img]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/M/MLLabelUtils.svg
 [pkgeval-url]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html
+[license-img]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat
+[license-url]: LICENSE.md
+[coveralls-img]: https://coveralls.io/repos/JuliaML/MLLabelUtils.jl/badge.svg?branch=master&service=github
+[coveralls-url]: https://coveralls.io/github/JuliaML/MLLabelUtils.jl?branch=master
+[docs-dev-img]: https://img.shields.io/badge/docs-latest-blue.svg?style=flat
+[docs-dev-url]: https://mllabelutilsjl.readthedocs.io/en/latest/?badge=latest
