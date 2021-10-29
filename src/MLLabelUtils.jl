@@ -23,6 +23,7 @@ import LearnBase: ind2label,
                   labelenc,
                   islabelenc,
                   convertlabelview
+using LearnBase: default_obsdim
 
 export
 

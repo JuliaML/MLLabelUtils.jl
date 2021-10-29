@@ -40,8 +40,8 @@ function LearnBase.convertlabelview(dst::LearnBase.VectorLabelEncoding{T,2},
 end
 
 function LearnBase.convertlabelview(dst::LearnBase.VectorLabelEncoding{T,K},
-                          values::AbstractVector{V},
-                          src::LearnBase.VectorLabelEncoding{V,K}) where {T,K,V}
+                                    values::AbstractVector{V},
+                                    src::LearnBase.VectorLabelEncoding{V,K}) where {T,K,V}
     f    = x -> convertlabel(dst, x, src)
     finv = x -> convertlabel(src, x, dst)
     MappedArray{T,1,typeof(values),typeof(f),typeof(finv)}(f, finv, values)
@@ -49,13 +49,14 @@ end
 
 ## General Vector based
 
-function LearnBase.convertlabel(dst::LearnBase.VectorLabelEncoding{T,K}, x, src::LearnBase.VectorLabelEncoding{S,K}) where {T,K,S}
+function LearnBase.convertlabel(dst::LearnBase.VectorLabelEncoding{T,K}, x, 
+                      src::LearnBase.VectorLabelEncoding{S,K}) where {T,K,S}
     ind2label(label2ind(x, src), dst)::T
 end
 
 function LearnBase.convertlabel(dst::LearnBase.VectorLabelEncoding{T,K},
-                      values::AbstractVector,
-                      src::LearnBase.VectorLabelEncoding{S,K}) where {T,K,S}
+                                values::AbstractVector,
+                                src::LearnBase.VectorLabelEncoding{S,K}) where {T,K,S}
     convertlabel.(dst, values, src)::_array_type(T,Val{1})
 end
 
