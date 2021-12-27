@@ -387,9 +387,9 @@ LearnBase.label(A::AbstractMatrix{<:Union{Number,Bool}}; obsdim = LearnBase.defa
     collect(1:size(A, mod1(obsdim + 1, 2)))
 
 # make sure pos label is first
-_arrange_label(lbl::Vector) = lbl
-_arrange_label(::Vector{<:Bool}) = [true,false]
-function _arrange_label(lbl::Vector{T}) where {T<:Number}
+_arrange_label(lbl::AbstractVector) = lbl
+_arrange_label(::AbstractVector{<:Bool}) = [true,false]
+function _arrange_label(lbl::AbstractVector{T}) where {T<:Number}
     if length(lbl) == 2
         if minimum(lbl) == 0 && maximum(lbl) == 1
             lbl[1] = T(1)
