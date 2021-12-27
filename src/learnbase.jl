@@ -51,6 +51,7 @@ label(A::AbstractMatrix{<:Union{Number,Bool}}, ::Val{2}) = collect(1:size(A,1))
 label(A::AbstractMatrix{<:Union{Number,Bool}}, ::Val{1}) = collect(1:size(A,2))
 
 # make sure pos label is first
+_arrange_label(lbl::AbstractRange) = _arrange_label(collect(lbl)) # TODO: lazily evaluate this without `collect`?
 _arrange_label(lbl::Vector) = lbl
 _arrange_label(lbl::Vector{<:Bool}) = [true,false]
 function _arrange_label(lbl::Vector{T}) where {T<:Number}
